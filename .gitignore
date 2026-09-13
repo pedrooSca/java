@@ -1,0 +1,27 @@
+# Compilação Maven e artefatos
+target/
+*.war
+*.jar
+*.class
+
+# Ambientes Locais / IDEs
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# Volumes de Banco de Dados locais do Docker
+db_data/
+
+# Binários locais de JDK e Maven descompactados
+jdk-*/
+apache-maven-*/
+
+# Logs e arquivos temporários do sistema operacional
+*.log
+.DS_Store
+Thumbs.db

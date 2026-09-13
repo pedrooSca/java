@@ -1,0 +1,38 @@
+services:
+  # 1. Banco de Dados MySQL 8.0
+  db:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: db_recomendador_livros
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - livraria-net
+
+  # 2. Servidor Web Tomcat (Aplicação Java MVC / JSP)
+  web:
+    build:
+      context: ./livros
+      dockerfile: Dockerfile
+    container_name: livraria-web
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: "jdbc:mysql://db:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8"
+      DB_USER: "root"
+      DB_PASSWORD: "rootpassword"
+    depends_on:
+      - db
+    networks:
+      - livraria-net
+
+volumes:
+  db_data:
+
+networks:
+  livraria-net:
