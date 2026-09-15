@@ -69,6 +69,10 @@ public class LivroController {
         return livroDAO.listarDetalhados();
     }
 
+    public List<LivroDetalhadoDTO> pesquisarLivros(String termo, Integer generoId) throws SQLException {
+        return livroDAO.pesquisar(termo, generoId);
+    }
+
     private void validarDadosLivro(String titulo, String autor, Integer anoPublicacao) {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new IllegalArgumentException("O título do livro é obrigatório.");

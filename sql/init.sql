@@ -3,6 +3,8 @@
 -- BANCO DE DADOS MODELO MVC (MySQL)
 -- ============================================================
 
+SET NAMES utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS db_recomendador_livros
 DEFAULT CHARACTER SET utf8mb4
 DEFAULT COLLATE utf8mb4_unicode_ci;
@@ -67,6 +69,22 @@ CREATE TABLE IF NOT EXISTS log_alteracoes_livros (
     titulo_anterior VARCHAR(150),
     titulo_novo VARCHAR(150),
     data_alteracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
+-- 6. TABELA DE AVALIAÇÕES DE LIVROS
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS avaliacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    livro_id INT NOT NULL,
+    nota INT NOT NULL,
+    comentario TEXT,
+    data_avaliacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_avaliacoes_usuarios FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id) ON DELETE CASCADE,
+    CONSTRAINT fk_avaliacoes_livros FOREIGN KEY (livro_id)
+        REFERENCES livros(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -135,34 +153,3 @@ BEGIN
 END;
 //
 DELIMITER ;
-
--- ============================================================
--- MASSA DE DADOS PARA TESTES (SEED DATA)
--- ============================================================
-
-INSERT IGNORE INTO generos (id, nome, descricao) VALUES
-(1, 'Ficção Científica', 'Histórias baseadas em ciência, tecnologia e futuro'),
-(2, 'Fantasia', 'Mundos imaginários, magia e criaturas míticas'),
-(3, 'Sistemas e Tecnologia', 'Livros técnicos de computação e engenharia de software'),
-(4, 'Romance', 'Histórias focadas em relacionamentos e sentimentos'),
-(5, 'Terror / Suspense', 'Histórias de mistério, suspense psicológico e horror');
-
-INSERT IGNORE INTO usuarios (id, nome, email) VALUES
-(1, 'Aluno ADS UNIUBE', 'aluno.ads@uniube.br'),
-(2, 'Maria Oliveira', 'maria@email.com');
-
-INSERT IGNORE INTO livros (id, titulo, autor, isbn, ano_publicacao, genero_id) VALUES
-(1, 'Duna', 'Frank Herbert', '978-8576572008', 1965, 1),
-(2, 'O Neuromancer', 'William Gibson', '978-8576573005', 1984, 1),
-(3, 'O Senhor dos Anéis', 'J.R.R. Tolkien', '978-8595084742', 1954, 2),
-(4, 'O Nome do Vento', 'Patrick Rothfuss', '978-8580410051', 2007, 2),
-(5, 'Entendendo Algoritmos', 'Aditya Y. Bhargava', '978-8575225639', 2017, 3),
-(6, 'Código Limpo (Clean Code)', 'Robert C. Martin', '978-8576082675', 2009, 3),
-(7, 'Orgulho e Preconceito', 'Jane Austen', '978-8535902778', 1813, 4),
-(8, 'O Iluminado', 'Stephen King', '978-8535914849', 1977, 5);
-
-INSERT IGNORE INTO usuario_generos (usuario_id, genero_id) VALUES
-(1, 1),
-(1, 3),
-(2, 2),
-(2, 4);

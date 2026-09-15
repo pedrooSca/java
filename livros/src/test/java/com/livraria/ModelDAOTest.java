@@ -64,6 +64,30 @@ public class ModelDAOTest {
     }
 
     @Test
+    public void testAvaliacaoModel() {
+        com.livraria.model.Avaliacao av = new com.livraria.model.Avaliacao(1, 2, 5, "Excelente leitura!");
+        av.setId(10);
+        av.setUsuarioNome("Maria Oliveira");
+        av.setLivroTitulo("Duna");
+
+        assertEquals(Integer.valueOf(10), av.getId());
+        assertEquals(1, av.getUsuarioId());
+        assertEquals("Maria Oliveira", av.getUsuarioNome());
+        assertEquals(2, av.getLivroId());
+        assertEquals("Duna", av.getLivroTitulo());
+        assertEquals(5, av.getNota());
+        assertEquals("Excelente leitura!", av.getComentario());
+        assertTrue(av.toString().contains("Excelente leitura!"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAvaliacaoNotaInvalida() throws java.sql.SQLException {
+        com.livraria.dao.AvaliacaoDAO dao = new com.livraria.dao.AvaliacaoDAO();
+        com.livraria.model.Avaliacao av = new com.livraria.model.Avaliacao(1, 1, 6, "Nota maior que 5");
+        dao.inserir(av);
+    }
+
+    @Test
     public void testConnectionFactoryConfigCarregada() {
         assertNotNull(ConnectionFactory.getUrl());
         assertNotNull(ConnectionFactory.getUser());

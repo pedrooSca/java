@@ -46,4 +46,15 @@ public class RecomendacaoDAO {
         }
         return recomendacoes;
     }
+
+    /**
+     * Alias/conveniência para obterRecomendacoesPorUsuario.
+     *
+     * @param usuarioId ID do usuário
+     * @return Lista de livros recomendados
+     * @throws SQLException Em caso de erro na execução JDBC
+     */
+    public List<LivroDetalhadoDTO> obterRecomendacoes(int usuarioId) throws SQLException {
+        return obterRecomendacoesPorUsuario(usuarioId);
+    }
 }

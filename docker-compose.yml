@@ -23,7 +23,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_URL: "jdbc:mysql://db:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8"
+      DB_URL: "jdbc:mysql://db:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8"
       DB_USER: "root"
       DB_PASSWORD: "rootpassword"
     depends_on:

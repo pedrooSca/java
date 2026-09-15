@@ -29,7 +29,7 @@ public class ConnectionFactory {
 
         url = System.getenv("DB_URL");
         if (url == null || url.trim().isEmpty()) {
-            url = props.getProperty("db.url", "jdbc:mysql://localhost:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8");
+            url = props.getProperty("db.url", "jdbc:mysql://localhost:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8");
         }
 
         user = System.getenv("DB_USER");

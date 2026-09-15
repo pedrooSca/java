@@ -1,110 +1,228 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.dao.LivroDAO" %>
+<%@ page import="com.livraria.controller.LivroController" %>
+<%@ page import="com.livraria.dao.AvaliacaoDAO" %>
+<%@ page import="com.livraria.dao.GeneroDAO" %>
+<%@ page import="com.livraria.dao.UsuarioDAO" %>
 <%@ page import="com.livraria.dao.RecomendacaoDAO" %>
+<%@ page import="com.livraria.dao.LivroDAO" %>
+<%@ page import="com.livraria.model.Avaliacao" %>
 <%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%
+    boolean dbOnline = false;
+    List<LivroDetalhadoDTO> livros = null;
+    List<LivroDetalhadoDTO> recomendacoes = null;
+    List<Avaliacao> avaliacoesRecentes = null;
+    Map<Integer, Double> medias = null;
+    int totalLivros = 0;
+    int totalGeneros = 0;
+    int totalUsuarios = 0;
+    int totalAvaliacoes = 0;
+
+    try {
+        dbOnline = ConnectionFactory.testarConexao();
+        if (dbOnline) {
+            LivroDAO livroDAO = new LivroDAO();
+            AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
+
+            livros = livroDAO.listarDetalhados();
+            recomendacoes = new RecomendacaoDAO().obterRecomendacoesPorUsuario(1);
+            medias = avaliacaoDAO.obterMediasPorLivros();
+            avaliacoesRecentes = avaliacaoDAO.listarTodas(4);
+
+            totalLivros = livros != null ? livros.size() : 0;
+            totalGeneros = new GeneroDAO().listarTodos().size();
+            totalUsuarios = new UsuarioDAO().listarTodos().size();
+            totalAvaliacoes = avaliacaoDAO.contarTotal();
+        }
+    } catch (Exception e) {
+        dbOnline = false;
+    }
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livraria | Catálogo de livros</title>
+    <meta name="description" content="Sistema de Recomendação de Livros por Gênero — UNIUBE ADS MVC com MySQL, Views, Triggers e Stored Procedures">
+    <title>Livraria | Sistema de Recomendação de Livros</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        :root {
-            --background: #f6f1e8;
-            --surface: #fffdf8;
-            --ink: #29251f;
-            --muted: #756e63;
-            --line: #e5ddd0;
-            --accent: #a84f32;
-            --tag: #e9f0e8;
-            --tag-ink: #49624d;
+        .hero {
+            background: linear-gradient(135deg, #2d2218 0%, #4a3323 50%, #a84f32 100%);
+            color: white;
+            padding: 72px 0 60px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--background); color: var(--ink); font-family: 'DM Sans', sans-serif; line-height: 1.5; }
-        .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
-        header { padding: 42px 0 32px; border-bottom: 1px solid var(--line); }
-        .brand { color: var(--accent); font-size: .82rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-        h1, h2 { font-family: 'Playfair Display', serif; }
-        h1 { font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.05; margin: 12px 0 10px; max-width: 720px; }
-        .intro { color: var(--muted); max-width: 570px; font-size: 1.05rem; }
-        main { padding: 34px 0 56px; }
-        .section { margin-bottom: 42px; }
-        .section-heading { align-items: end; display: flex; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-        h2 { font-size: 1.75rem; }
-        .count { color: var(--muted); font-size: .92rem; white-space: nowrap; }
-        .book-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 16px; }
-        .book { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-height: 190px; padding: 21px; transition: border-color .2s, transform .2s; }
-        .book:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .book-number { color: var(--accent); font-size: .82rem; font-weight: 700; }
-        .book h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; line-height: 1.2; margin: 12px 0 5px; }
-        .author { color: var(--muted); font-size: .95rem; }
-        .book-meta { align-items: center; border-top: 1px solid var(--line); display: flex; justify-content: space-between; margin-top: 24px; padding-top: 12px; }
-        .genre { background: var(--tag); border-radius: 4px; color: var(--tag-ink); font-size: .78rem; font-weight: 600; padding: 4px 8px; }
-        .year { color: var(--muted); font-size: .82rem; }
-        .empty { background: var(--surface); border: 1px dashed var(--line); color: var(--muted); padding: 28px; text-align: center; }
-        .notice { background: #fff8eb; border: 1px solid #eed9b2; border-radius: 8px; color: #795b28; padding: 18px 20px; }
-        footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; padding: 22px 0 30px; }
-        @media (max-width: 600px) { header { padding-top: 28px; } .section-heading { align-items: start; flex-direction: column; gap: 4px; } }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+            pointer-events: none;
+        }
+        .hero h1 { color: white; font-size: clamp(2.4rem, 5vw, 4rem); margin-bottom: 14px; }
+        .hero p { color: rgba(255,255,255,0.75); font-size: 1.1rem; max-width: 600px; }
+        .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+        .btn-hero { padding: 12px 24px; font-size: 1rem; border-radius: var(--radius-sm); }
+        .btn-hero-primary { background: white; color: var(--accent); font-weight: 700; }
+        .btn-hero-primary:hover { background: #f5f0e8; color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .btn-hero-secondary { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.2); color: white; transform: translateY(-2px); }
+        .section-title { font-size: 1.5rem; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .section-title span { color: var(--muted); font-size: 0.9rem; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+        .rec-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .rec-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .quick-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 40px; }
+        .quick-link { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px; text-decoration: none; transition: all 0.2s ease; }
+        .quick-link:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .quick-link-icon { font-size: 1.6rem; margin-bottom: 10px; }
+        .quick-link-title { font-weight: 700; font-size: 0.97rem; color: var(--ink); margin-bottom: 4px; }
+        .quick-link-desc { font-size: 0.82rem; color: var(--muted); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="brand">Livraria</div>
-            <h1>Encontre sua próxima leitura.</h1>
-            <p class="intro">Explore o catálogo de livros e descubra recomendações selecionadas para você.</p>
-        </header>
-        <%
-            boolean dbOnline = false;
-            List<LivroDetalhadoDTO> livros = null;
-            List<LivroDetalhadoDTO> recomendacoes = null;
-            try {
-                dbOnline = ConnectionFactory.testarConexao();
-                if (dbOnline) {
-                    livros = new LivroDAO().listarDetalhados();
-                    recomendacoes = new RecomendacaoDAO().obterRecomendacoes(1);
-                }
-            } catch (Exception e) {
-                dbOnline = false;
-            }
-        %>
-        <main>
-            <% if (!dbOnline) { %>
-            <div class="notice">O catálogo está temporariamente indisponível. Tente novamente em alguns instantes.</div>
-            <% } else { %>
-                <section class="section">
-                    <div class="section-heading"><h2>Catálogo</h2><span class="count"><%= livros != null ? livros.size() : 0 %> livros</span></div>
-                    <% if (livros != null && !livros.isEmpty()) { %>
-                    <div class="book-grid">
-                        <% for (LivroDetalhadoDTO livro : livros) { %>
-                        <article class="book">
-                            <div class="book-number">#<%= livro.getLivroId() %></div>
-                            <h3><%= livro.getTitulo() %></h3>
-                            <p class="author"><%= livro.getAutor() %></p>
-                            <div class="book-meta"><span class="genre"><%= livro.getGeneroNome() %></span><span class="year"><%= livro.getAnoPublicacao() != null ? livro.getAnoPublicacao() : "Ano não informado" %></span></div>
-                        </article>
-                        <% } %>
-                    </div>
-                    <% } else { %><div class="empty">Nenhum livro encontrado no catálogo.</div><% } %>
-                </section>
-                <section class="section">
-                    <div class="section-heading"><h2>Recomendados para você</h2></div>
-                    <% if (recomendacoes != null && !recomendacoes.isEmpty()) { %>
-                    <div class="book-grid">
-                        <% for (LivroDetalhadoDTO livro : recomendacoes) { %>
-                        <article class="book"><h3><%= livro.getTitulo() %></h3><p class="author"><%= livro.getAutor() %></p><div class="book-meta"><span class="genre"><%= livro.getGeneroNome() %></span></div></article>
-                        <% } %>
-                    </div>
-                    <% } else { %><div class="empty">Ainda não há recomendações disponíveis.</div><% } %>
-                </section>
+    <jsp:include page="navbar.jsp">
+        <jsp:param name="activePage" value="index"/>
+    </jsp:include>
+
+    <!-- Hero Banner -->
+    <section class="hero">
+        <div class="container">
+            <div style="font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 12px;">UNIUBE · ADS · Projeto MVC</div>
+            <h1>Encontre sua próxima<br><em>leitura favorita.</em></h1>
+            <p>Sistema de gerenciamento e recomendação de livros com MySQL, Views, Triggers e Stored Procedures.</p>
+            <div class="hero-actions">
+                <a href="livros.jsp" class="btn btn-hero btn-hero-primary">Explorar Catálogo</a>
+                <a href="recomendacoes.jsp" class="btn btn-hero btn-hero-secondary">Ver Recomendações</a>
+                <a href="novo-livro.jsp" class="btn btn-hero btn-hero-secondary">+ Cadastrar Livro</a>
+            </div>
+        </div>
+    </section>
+
+    <main class="container" style="padding-bottom: 60px;">
+
+        <% if (!dbOnline) { %>
+            <div class="alert alert-error">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div><strong>Banco de dados inacessível.</strong> Verifique se os containers Docker estão ativos: <code>docker compose up -d</code></div>
+            </div>
+        <% } else { %>
+
+        <!-- Métricas Rápidas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value"><%= totalLivros %></div>
+                <div class="stat-label">Livros no acervo</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value"><%= totalGeneros %></div>
+                <div class="stat-label">Gêneros literários</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value"><%= totalUsuarios %></div>
+                <div class="stat-label">Leitores cadastrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value"><%= totalAvaliacoes %></div>
+                <div class="stat-label">Avaliações registradas</div>
+            </div>
+        </div>
+
+        <!-- Acesso Rápido -->
+        <h2 class="section-title">Acesso Rápido</h2>
+        <div class="quick-links">
+            <a href="livros.jsp" class="quick-link">
+                <div class="quick-link-icon">📚</div>
+                <div class="quick-link-title">Catálogo & Pesquisa</div>
+                <div class="quick-link-desc">Busque títulos, autores e filtre por gênero</div>
+            </a>
+            <a href="novo-livro.jsp" class="quick-link">
+                <div class="quick-link-icon">➕</div>
+                <div class="quick-link-title">Cadastrar Livro</div>
+                <div class="quick-link-desc">Adicione novos títulos ao acervo</div>
+            </a>
+            <a href="avaliar.jsp" class="quick-link">
+                <div class="quick-link-icon">⭐</div>
+                <div class="quick-link-title">Avaliações</div>
+                <div class="quick-link-desc">Dê notas e escreva resenhas</div>
+            </a>
+            <a href="recomendacoes.jsp" class="quick-link">
+                <div class="quick-link-icon">💡</div>
+                <div class="quick-link-title">Recomendações</div>
+                <div class="quick-link-desc">Stored Procedure por gênero preferido</div>
+            </a>
+            <a href="usuarios.jsp" class="quick-link">
+                <div class="quick-link-icon">👥</div>
+                <div class="quick-link-title">Usuários</div>
+                <div class="quick-link-desc">Gerencie leitores e preferências</div>
+            </a>
+            <a href="auditoria.jsp" class="quick-link">
+                <div class="quick-link-icon">📋</div>
+                <div class="quick-link-title">Auditoria</div>
+                <div class="quick-link-desc">Logs gerados pelos Triggers MySQL</div>
+            </a>
+        </div>
+
+        <!-- Recomendações para Aluno ADS -->
+        <% if (recomendacoes != null && !recomendacoes.isEmpty()) { %>
+        <h2 class="section-title">
+            Recomendações para Aluno ADS <span>via Stored Procedure</span>
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 40px;">
+            <% for (LivroDetalhadoDTO rec : recomendacoes) { %>
+            <div class="rec-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <span class="badge-genre"><%= rec.getGeneroNome() %></span>
+                    <span style="background: var(--accent-soft); color: var(--accent); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;">✦ Rec.</span>
+                </div>
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 1.1rem; line-height: 1.25; margin-bottom: 6px;"><%= rec.getTitulo() %></h3>
+                <p style="font-size: 0.87rem;">por <%= rec.getAutor() %></p>
+            </div>
             <% } %>
-        </main>
-        <footer>Livraria · Um catálogo simples para boas histórias.</footer>
-    </div>
+        </div>
+        <% } %>
+
+        <!-- Avaliações Recentes -->
+        <% if (avaliacoesRecentes != null && !avaliacoesRecentes.isEmpty()) { %>
+        <h2 class="section-title">
+            Avaliações Recentes <span><%= avaliacoesRecentes.size() %> comentários</span>
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 40px;">
+            <% for (Avaliacao av : avaliacoesRecentes) {
+                StringBuilder stars = new StringBuilder();
+                for (int s = 1; s <= 5; s++) { stars.append(s <= av.getNota() ? "★" : "☆"); }
+            %>
+            <div class="rec-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="font-size: 0.93rem;"><%= av.getUsuarioNome() %></strong>
+                    <span style="color: var(--star); font-size: 1rem;"><%= stars.toString() %></span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">sobre <em><%= av.getLivroTitulo() %></em></div>
+                <% if (av.getComentario() != null && !av.getComentario().isEmpty()) { %>
+                <p style="font-size: 0.88rem; font-style: italic; color: var(--ink); line-height: 1.5;">
+                    "<%= av.getComentario().length() > 120 ? av.getComentario().substring(0,120) + "..." : av.getComentario() %>"
+                </p>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
+
+        <% } /* dbOnline */ %>
+    </main>
+
+    <footer>
+        <div class="container">
+            Livraria · Sistema de Recomendações de Livros por Gênero · UNIUBE ADS MVC
+        </div>
+    </footer>
 </body>
 </html>
