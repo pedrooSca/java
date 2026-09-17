@@ -1,49 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.controller.LivroController" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
-<%@ page import="com.livraria.dao.AvaliacaoDAO" %>
 <%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
 <%@ page import="com.livraria.model.Genero" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%
-    String q = request.getParameter("q");
+    if (request.getAttribute("mvcLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/livros");
+        return;
+    }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    String q = (String) request.getAttribute("q");
+    Integer generoFiltroId = (Integer) request.getAttribute("generoFiltroId");
+    List<LivroDetalhadoDTO> livros = (List<LivroDetalhadoDTO>) request.getAttribute("livros");
+    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
+    Map<Integer, Double> medias = (Map<Integer, Double>) request.getAttribute("medias");
+    String errorMessage = (String) request.getAttribute("errorMessage");
     if (q == null) q = "";
-    q = q.trim();
-
-    String generoStr = request.getParameter("generoId");
-    Integer generoFiltroId = null;
-    if (generoStr != null && !generoStr.trim().isEmpty()) {
-        try {
-            generoFiltroId = Integer.parseInt(generoStr.trim());
-        } catch (NumberFormatException ignored) {}
-    }
-
-    boolean dbOnline = false;
-    List<LivroDetalhadoDTO> livros = null;
-    List<Genero> generos = null;
-    Map<Integer, Double> medias = null;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            LivroController controller = new LivroController();
-            GeneroDAO generoDAO = new GeneroDAO();
-            AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
-
-            generos = generoDAO.listarTodos();
-            medias = avaliacaoDAO.obterMediasPorLivros();
-
-            if (!q.isEmpty() || (generoFiltroId != null && generoFiltroId > 0)) {
-                livros = controller.pesquisarLivros(q, generoFiltroId);
-            } else {
-                livros = controller.listarLivrosDetalhados();
-            }
-        }
-    } catch (Exception e) {
-        dbOnline = false;
-    }
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -53,9 +25,17 @@
     <title>Catálogo & Pesquisa de Livros | Livraria</title>
     <link rel="stylesheet" href="css/style.css">
     <script>
-        function confirmarExclusao(id, titulo) {
+        function confirmarExclusao(botao) {
+            const id = botao.dataset.id;
+            const titulo = botao.dataset.titulo;
             if (confirm("Tem certeza que deseja excluir o livro \"" + titulo + "\"?\n\nEssa ação acionará o trigger 'trg_depois_deletar_livro' para auditoria.")) {
-                window.location.href = "acoes.jsp?acao=excluir_livro&id=" + id;
+                const form = document.createElement("form");
+                form.method = "post";
+                form.action = "livros";
+                form.innerHTML = '<input type="hidden" name="acao" value="excluir_livro">' +
+                    '<input type="hidden" name="id" value="' + id + '">';
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>
@@ -79,13 +59,13 @@
 
         <% if (!dbOnline) { %>
             <div class="alert alert-error">
-                O banco de dados está temporariamente inacessível. Certifique-se de que os containers do MySQL e Tomcat estão ativos.
+                <%= errorMessage != null ? errorMessage : "O banco de dados está temporariamente inacessível. Certifique-se de que os containers do MySQL e Tomcat estão ativos." %>
             </div>
         <% } else { %>
 
             <!-- Barra de Pesquisa e Filtros -->
             <div class="search-bar-container">
-                <form action="livros.jsp" method="get" class="search-form">
+                <form action="livros" method="get" class="search-form">
                     <div class="search-input-wrap">
                         <input type="text" name="q" value="<%= q %>" class="form-control" placeholder="Buscar por título, autor ou ISBN..." autofocus>
                     </div>
@@ -106,7 +86,7 @@
                         Pesquisar
                     </button>
                     <% if (!q.isEmpty() || (generoFiltroId != null && generoFiltroId > 0)) { %>
-                        <a href="livros.jsp" class="btn btn-secondary">Limpar Filtros</a>
+                        <a href="livros" class="btn btn-secondary">Limpar Filtros</a>
                     <% } %>
                 </form>
             </div>
@@ -176,7 +156,7 @@
                                     Avaliar
                                 </a>
                             </div>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmarExclusao(<%= livro.getLivroId() %>, '<%= livro.getTitulo().replace("'", "\\'") %>')" title="Excluir este livro">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmarExclusao(this)" data-id="<%= livro.getLivroId() %>" data-titulo="<%= livro.getTitulo().replace("\"", "&quot;") %>" title="Excluir este livro">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 Excluir
                             </button>
@@ -190,7 +170,7 @@
                     <h3>Nenhum livro encontrado</h3>
                     <p style="margin-top: 8px;">Tente pesquisar por outros termos ou remover os filtros aplicados.</p>
                     <div style="margin-top: 20px;">
-                        <a href="livros.jsp" class="btn btn-secondary">Ver Catálogo Completo</a>
+                        <a href="livros" class="btn btn-secondary">Ver Catálogo Completo</a>
                         <a href="novo-livro.jsp" class="btn btn-primary" style="margin-left: 8px;">Cadastrar Novo Livro</a>
                     </div>
                 </div>

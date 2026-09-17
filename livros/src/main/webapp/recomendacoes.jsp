@@ -108,7 +108,7 @@
                             <% for (Genero g : preferenciasDoUsuario) { %>
                             <div style="display: flex; align-items: center; gap: 6px; background: var(--tag); border-radius: 20px; padding: 4px 12px 4px 6px;">
                                 <span style="font-size: 0.82rem; font-weight: 600; color: var(--tag-ink);"><%= g.getNome() %></span>
-                                <form action="acoes.jsp" method="post" style="display: inline;">
+                                <form action="acoes" method="post" style="display: inline;">
                                     <input type="hidden" name="acao" value="remover_preferencia">
                                     <input type="hidden" name="usuarioId" value="<%= usuarioSelecionadoId %>">
                                     <input type="hidden" name="generoId" value="<%= g.getId() %>">
@@ -131,7 +131,7 @@
                         boolean temGenerosDisponiveis = generos != null && generos.stream().anyMatch(g -> !preferidosSet.contains(g.getId()));
                     %>
                     <% if (temGenerosDisponiveis) { %>
-                    <form action="acoes.jsp" method="post" style="display: flex; gap: 8px; margin-top: 4px;">
+                    <form action="acoes" method="post" style="display: flex; gap: 8px; margin-top: 4px;">
                         <input type="hidden" name="acao" value="adicionar_preferencia">
                         <input type="hidden" name="usuarioId" value="<%= usuarioSelecionadoId %>">
                         <select name="generoId" class="form-control" style="flex: 1; padding: 8px 10px;" required>

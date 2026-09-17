@@ -98,7 +98,7 @@
                     <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Cadastrar Usuário</h2>
                     <p style="font-size: 0.88rem; margin-bottom: 20px;">Adicione um novo leitor ao sistema.</p>
 
-                    <form action="acoes.jsp" method="post">
+                    <form action="acoes" method="post">
                         <input type="hidden" name="acao" value="cadastrar_usuario">
 
                         <div class="form-group">

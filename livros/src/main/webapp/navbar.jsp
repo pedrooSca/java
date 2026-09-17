@@ -29,7 +29,7 @@
         <nav>
             <ul class="nav-menu">
                 <li><a href="index.jsp" class="nav-link <%= "index".equals(currentPage) ? "active" : "" %>">Início</a></li>
-                <li><a href="livros.jsp" class="nav-link <%= "livros".equals(currentPage) ? "active" : "" %>">Catálogo & Pesquisa</a></li>
+                <li><a href="livros" class="nav-link <%= "livros".equals(currentPage) ? "active" : "" %>">Catálogo & Pesquisa</a></li>
                 <li><a href="avaliar.jsp" class="nav-link <%= "avaliar".equals(currentPage) ? "active" : "" %>">Avaliações</a></li>
                 <li><a href="recomendacoes.jsp" class="nav-link <%= "recomendacoes".equals(currentPage) ? "active" : "" %>">Recomendações</a></li>
                 <li><a href="usuarios.jsp" class="nav-link <%= "usuarios".equals(currentPage) ? "active" : "" %>">Usuários</a></li>
