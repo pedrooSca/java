@@ -100,7 +100,7 @@
             <h1>Encontre sua próxima<br><em>leitura favorita.</em></h1>
             <p>Sistema de gerenciamento e recomendação de livros com MySQL, Views, Triggers e Stored Procedures.</p>
             <div class="hero-actions">
-                <a href="livros.jsp" class="btn btn-hero btn-hero-primary">Explorar Catálogo</a>
+                <a href="livros" class="btn btn-hero btn-hero-primary">Explorar Catálogo</a>
                 <a href="recomendacoes.jsp" class="btn btn-hero btn-hero-secondary">Ver Recomendações</a>
                 <a href="novo-livro.jsp" class="btn btn-hero btn-hero-secondary">+ Cadastrar Livro</a>
             </div>
@@ -139,7 +139,7 @@
         <!-- Acesso Rápido -->
         <h2 class="section-title">Acesso Rápido</h2>
         <div class="quick-links">
-            <a href="livros.jsp" class="quick-link">
+            <a href="livros" class="quick-link">
                 <div class="quick-link-icon">📚</div>
                 <div class="quick-link-title">Catálogo & Pesquisa</div>
                 <div class="quick-link-desc">Busque títulos, autores e filtre por gênero</div>

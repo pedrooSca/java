@@ -110,7 +110,7 @@
                     <h2 style="font-size: 1.4rem; margin-bottom: 6px;">Escreva sua Resenha</h2>
                     <p style="font-size: 0.9rem; margin-bottom: 22px;">Selecione o livro e dê sua nota de 1 a 5 estrelas.</p>
 
-                    <form action="acoes.jsp" method="post">
+                    <form action="acoes" method="post">
                         <input type="hidden" name="acao" value="avaliar_livro">
 
                         <div class="form-group">

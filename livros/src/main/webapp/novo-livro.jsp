@@ -30,7 +30,7 @@
 
     <main class="container" style="padding: 10px 0 60px;">
         <div class="page-header">
-            <a href="livros.jsp" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;">
+            <a href="livros" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;">
                 ← Voltar para o Catálogo
             </a>
             <h1>Cadastrar Novo Livro</h1>
@@ -45,7 +45,7 @@
 
         <div style="max-width: 680px; margin: 0 auto;">
             <div class="card">
-                <form action="acoes.jsp" method="post">
+                <form action="livros" method="post">
                     <input type="hidden" name="acao" value="cadastrar_livro">
 
                     <div class="form-group">
@@ -85,7 +85,7 @@
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 20px;">
-                        <a href="livros.jsp" class="btn btn-secondary">Cancelar</a>
+                        <a href="livros" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-primary">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             Salvar Livro

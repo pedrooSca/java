@@ -9,7 +9,7 @@
 <%
     String idStr = request.getParameter("id");
     if (idStr == null || idStr.trim().isEmpty()) {
-        response.sendRedirect("livros.jsp?erro=ID+do+livro+n%C3%A3o+informado.");
+                response.sendRedirect("livros?erro=ID+do+livro+n%C3%A3o+informado.");
         return;
     }
 
@@ -17,7 +17,7 @@
     try {
         id = Integer.parseInt(idStr.trim());
     } catch (NumberFormatException e) {
-        response.sendRedirect("livros.jsp?erro=ID+inv%C3%A1lido.");
+        response.sendRedirect("livros?erro=ID+inv%C3%A1lido.");
         return;
     }
 
@@ -36,7 +36,7 @@
             if (opt.isPresent()) {
                 livro = opt.get();
             } else {
-                response.sendRedirect("livros.jsp?erro=Livro+n%C3%A3o+encontrado.");
+                response.sendRedirect("livros?erro=Livro+n%C3%A3o+encontrado.");
                 return;
             }
         }
@@ -59,7 +59,7 @@
 
     <main class="container" style="padding: 10px 0 60px;">
         <div class="page-header">
-            <a href="livros.jsp" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;">
+            <a href="livros" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;">
                 ← Voltar para o Catálogo
             </a>
             <h1>Editar Livro #<%= id %></h1>
@@ -82,7 +82,7 @@
             </div>
 
             <div class="card">
-                <form action="acoes.jsp" method="post">
+                <form action="livros" method="post">
                     <input type="hidden" name="acao" value="atualizar_livro">
                     <input type="hidden" name="id" value="<%= livro.getId() %>">
 
@@ -122,7 +122,7 @@
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 20px;">
-                        <a href="livros.jsp" class="btn btn-secondary">Cancelar</a>
+                        <a href="livros" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-primary">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                             Salvar Alterações
