@@ -1,45 +1,26 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.controller.LivroController" %>
-<%@ page import="com.livraria.dao.AvaliacaoDAO" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
-<%@ page import="com.livraria.dao.UsuarioDAO" %>
-<%@ page import="com.livraria.dao.RecomendacaoDAO" %>
-<%@ page import="com.livraria.dao.LivroDAO" %>
 <%@ page import="com.livraria.model.Avaliacao" %>
 <%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%
-    boolean dbOnline = false;
-    List<LivroDetalhadoDTO> livros = null;
-    List<LivroDetalhadoDTO> recomendacoes = null;
-    List<Avaliacao> avaliacoesRecentes = null;
-    Map<Integer, Double> medias = null;
-    int totalLivros = 0;
-    int totalGeneros = 0;
-    int totalUsuarios = 0;
-    int totalAvaliacoes = 0;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            LivroDAO livroDAO = new LivroDAO();
-            AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
-
-            livros = livroDAO.listarDetalhados();
-            recomendacoes = new RecomendacaoDAO().obterRecomendacoesPorUsuario(1);
-            medias = avaliacaoDAO.obterMediasPorLivros();
-            avaliacoesRecentes = avaliacaoDAO.listarTodas(4);
-
-            totalLivros = livros != null ? livros.size() : 0;
-            totalGeneros = new GeneroDAO().listarTodos().size();
-            totalUsuarios = new UsuarioDAO().listarTodos().size();
-            totalAvaliacoes = avaliacaoDAO.contarTotal();
-        }
-    } catch (Exception e) {
-        dbOnline = false;
+    if (request.getAttribute("homeLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/home");
+        return;
     }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<LivroDetalhadoDTO> livros = (List<LivroDetalhadoDTO>) request.getAttribute("livros");
+    List<LivroDetalhadoDTO> recomendacoes = (List<LivroDetalhadoDTO>) request.getAttribute("recomendacoes");
+    List<Avaliacao> avaliacoesRecentes = (List<Avaliacao>) request.getAttribute("avaliacoesRecentes");
+    Map<Integer, Double> medias = (Map<Integer, Double>) request.getAttribute("medias");
+    Integer totalLivrosAttr = (Integer) request.getAttribute("totalLivros");
+    Integer totalGenerosAttr = (Integer) request.getAttribute("totalGeneros");
+    Integer totalUsuariosAttr = (Integer) request.getAttribute("totalUsuarios");
+    Integer totalAvaliacoesAttr = (Integer) request.getAttribute("totalAvaliacoes");
+    int totalLivros = totalLivrosAttr == null ? 0 : totalLivrosAttr;
+    int totalGeneros = totalGenerosAttr == null ? 0 : totalGenerosAttr;
+    int totalUsuarios = totalUsuariosAttr == null ? 0 : totalUsuariosAttr;
+    int totalAvaliacoes = totalAvaliacoesAttr == null ? 0 : totalAvaliacoesAttr;
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

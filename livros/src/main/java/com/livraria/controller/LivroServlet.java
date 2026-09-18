@@ -2,8 +2,10 @@ package com.livraria.controller;
 
 import com.livraria.config.ConnectionFactory;
 import com.livraria.dao.AvaliacaoDAO;
-import com.livraria.dao.GeneroDAO;
 import com.livraria.model.LivroDetalhadoDTO;
+import com.livraria.service.AvaliacaoService;
+import com.livraria.service.GeneroService;
+import com.livraria.service.LivroService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,11 +23,11 @@ import java.util.List;
  * GET consulta o catálogo; POST executa as alterações do CRUD.
  */
 @WebServlet(name = "LivroServlet", urlPatterns = "/livros")
-public class LivroServlet extends HttpServlet {
+public class LivroServlet extends BaseServlet {
 
-    private final LivroController livroController = new LivroController();
-    private final GeneroDAO generoDAO = new GeneroDAO();
-    private final AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
+    private final LivroService livroService = new LivroService();
+    private final GeneroService generoService = new GeneroService();
+    private final AvaliacaoService avaliacaoService = new AvaliacaoService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -35,16 +37,16 @@ public class LivroServlet extends HttpServlet {
 
         try {
             List<LivroDetalhadoDTO> livros = termo.isEmpty() && generoId == null
-                    ? livroController.listarLivrosDetalhados()
-                    : livroController.pesquisarLivros(termo, generoId);
+                    ? livroService.listarDetalhados()
+                    : livroService.pesquisar(termo, generoId);
 
             request.setAttribute("mvcLoaded", true);
             request.setAttribute("dbOnline", true);
             request.setAttribute("q", termo);
             request.setAttribute("generoFiltroId", generoId);
             request.setAttribute("livros", livros);
-            request.setAttribute("generos", generoDAO.listarTodos());
-            request.setAttribute("medias", avaliacaoDAO.obterMediasPorLivros());
+            request.setAttribute("generos", generoService.listar());
+            request.setAttribute("medias", avaliacaoService.obterMediasPorLivros());
         } catch (SQLException e) {
             request.setAttribute("mvcLoaded", true);
             request.setAttribute("dbOnline", false);
@@ -62,7 +64,7 @@ public class LivroServlet extends HttpServlet {
 
         try {
             if ("cadastrar_livro".equals(acao)) {
-                livroController.cadastrarLivro(
+                livroService.cadastrar(
                         request.getParameter("titulo"),
                         request.getParameter("autor"),
                         request.getParameter("isbn"),
@@ -73,7 +75,7 @@ public class LivroServlet extends HttpServlet {
             }
 
             if ("atualizar_livro".equals(acao)) {
-                livroController.atualizarLivro(
+                livroService.atualizar(
                         inteiroObrigatorio(request.getParameter("id")),
                         request.getParameter("titulo"),
                         request.getParameter("autor"),
@@ -85,7 +87,7 @@ public class LivroServlet extends HttpServlet {
             }
 
             if ("excluir_livro".equals(acao)) {
-                livroController.excluirLivro(inteiroObrigatorio(request.getParameter("id")));
+                livroService.excluir(inteiroObrigatorio(request.getParameter("id")));
                 redirecionar(response, "livro_excluido", null);
                 return;
             }

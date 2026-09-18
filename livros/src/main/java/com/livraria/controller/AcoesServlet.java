@@ -1,9 +1,7 @@
 package com.livraria.controller;
 
-import com.livraria.dao.AvaliacaoDAO;
-import com.livraria.dao.UsuarioDAO;
-import com.livraria.model.Avaliacao;
-import com.livraria.model.Usuario;
+import com.livraria.service.AvaliacaoService;
+import com.livraria.service.UsuarioService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,10 +17,10 @@ import java.sql.SQLException;
  * Mantem as JSPs responsaveis apenas pela apresentacao e usa PRG apos cada POST.
  */
 @WebServlet(name = "AcoesServlet", urlPatterns = "/acoes")
-public class AcoesServlet extends HttpServlet {
+public class AcoesServlet extends BaseServlet {
 
-    private final AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
-    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final AvaliacaoService avaliacaoService = new AvaliacaoService();
+    private final UsuarioService usuarioService = new UsuarioService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -37,7 +35,7 @@ public class AcoesServlet extends HttpServlet {
                 int nota = inteiroObrigatorio(request.getParameter("nota"));
                 String comentario = valorOuVazio(request.getParameter("comentario"));
 
-                avaliacaoDAO.inserir(new Avaliacao(usuarioId, livroId, nota, comentario));
+                avaliacaoService.cadastrar(usuarioId, livroId, nota, comentario);
                 redirecionar(response, "/avaliar.jsp?livroId=" + livroId + "&msg=avaliacao_criada", null);
                 return;
             }
@@ -47,7 +45,7 @@ public class AcoesServlet extends HttpServlet {
                 String email = valorObrigatorio(request.getParameter("email"), "E-mail");
                 validarEmail(email);
 
-                usuarioDAO.inserir(new Usuario(nome, email));
+                usuarioService.cadastrar(nome, email);
                 redirecionar(response, "/usuarios.jsp?msg=usuario_criado", null);
                 return;
             }
@@ -55,7 +53,7 @@ public class AcoesServlet extends HttpServlet {
             if ("adicionar_preferencia".equals(acao)) {
                 int usuarioId = inteiroObrigatorio(request.getParameter("usuarioId"));
                 int generoId = inteiroObrigatorio(request.getParameter("generoId"));
-                usuarioDAO.adicionarPreferencia(usuarioId, generoId);
+                usuarioService.adicionarPreferencia(usuarioId, generoId);
                 redirecionar(response, "/recomendacoes.jsp?usuarioId=" + usuarioId + "&msg=preferencia_atualizada", null);
                 return;
             }
@@ -63,7 +61,7 @@ public class AcoesServlet extends HttpServlet {
             if ("remover_preferencia".equals(acao)) {
                 int usuarioId = inteiroObrigatorio(request.getParameter("usuarioId"));
                 int generoId = inteiroObrigatorio(request.getParameter("generoId"));
-                usuarioDAO.removerPreferencia(usuarioId, generoId);
+                usuarioService.removerPreferencia(usuarioId, generoId);
                 redirecionar(response, "/recomendacoes.jsp?usuarioId=" + usuarioId + "&msg=preferencia_atualizada", null);
                 return;
             }

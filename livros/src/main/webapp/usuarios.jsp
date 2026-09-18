@@ -1,24 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
-<%@ page import="com.livraria.dao.UsuarioDAO" %>
 <%@ page import="com.livraria.model.Genero" %>
 <%@ page import="com.livraria.model.Usuario" %>
 <%@ page import="java.util.List" %>
 <%
-    boolean dbOnline = false;
-    List<Usuario> usuarios = null;
-    List<Genero> todosGeneros = null;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            usuarios = new UsuarioDAO().listarTodos();
-            todosGeneros = new GeneroDAO().listarTodos();
-        }
-    } catch (Exception e) {
-        dbOnline = false;
+    if (request.getAttribute("usuariosLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/usuarios");
+        return;
     }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<Usuario> usuarios = (List<Usuario>) request.getAttribute("usuarios");
+    List<Genero> todosGeneros = (List<Genero>) request.getAttribute("todosGeneros");
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

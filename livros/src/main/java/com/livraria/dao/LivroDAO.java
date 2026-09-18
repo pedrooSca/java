@@ -1,6 +1,5 @@
 package com.livraria.dao;
 
-import com.livraria.config.ConnectionFactory;
 import com.livraria.model.Livro;
 import com.livraria.model.LivroDetalhadoDTO;
 
@@ -13,14 +12,14 @@ import java.util.Optional;
  * DAO para gerenciamento da tabela 'livros' (CRUD) e consumo da View 'vw_livros_detalhados'.
  * As operações de UPDATE e DELETE ativam automaticamente as triggers de auditoria.
  */
-public class LivroDAO {
+public class LivroDAO extends MysqlDAO {
 
     /**
      * Insere um novo livro.
      */
     public Livro inserir(Livro livro) throws SQLException {
         String sql = "INSERT INTO livros (titulo, autor, isbn, ano_publicacao, genero_id) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, livro.getTitulo());
@@ -50,7 +49,7 @@ public class LivroDAO {
      */
     public boolean atualizar(Livro livro) throws SQLException {
         String sql = "UPDATE livros SET titulo = ?, autor = ?, isbn = ?, ano_publicacao = ?, genero_id = ? WHERE id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, livro.getTitulo());
@@ -75,7 +74,7 @@ public class LivroDAO {
      */
     public boolean excluir(int id) throws SQLException {
         String sql = "DELETE FROM livros WHERE id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -89,7 +88,7 @@ public class LivroDAO {
      */
     public Optional<Livro> buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, titulo, autor, isbn, ano_publicacao, genero_id, data_cadastro FROM livros WHERE id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -118,7 +117,7 @@ public class LivroDAO {
         List<Livro> livros = new ArrayList<>();
         String sql = "SELECT id, titulo, autor, isbn, ano_publicacao, genero_id, data_cadastro FROM livros ORDER BY id ASC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -146,7 +145,7 @@ public class LivroDAO {
         List<LivroDetalhadoDTO> lista = new ArrayList<>();
         String sql = "SELECT livro_id, titulo, autor, isbn, ano_publicacao, genero_id, genero_nome FROM vw_livros_detalhados ORDER BY livro_id ASC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -171,7 +170,7 @@ public class LivroDAO {
      */
     public Optional<LivroDetalhadoDTO> buscarDetalhadoPorId(int id) throws SQLException {
         String sql = "SELECT livro_id, titulo, autor, isbn, ano_publicacao, genero_id, genero_nome FROM vw_livros_detalhados WHERE livro_id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -220,7 +219,7 @@ public class LivroDAO {
 
         sql.append("ORDER BY livro_id ASC");
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
@@ -250,7 +249,7 @@ public class LivroDAO {
      */
     public int contarTotal() throws SQLException {
         String sql = "SELECT COUNT(*) FROM livros";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {

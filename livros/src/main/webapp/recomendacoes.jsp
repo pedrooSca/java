@@ -1,50 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.controller.RecomendacaoController" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
-<%@ page import="com.livraria.dao.UsuarioDAO" %>
 <%@ page import="com.livraria.model.Genero" %>
 <%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
 <%@ page import="com.livraria.model.Usuario" %>
 <%@ page import="java.util.List" %>
 <%
-    boolean dbOnline = false;
-    List<Usuario> usuarios = null;
-    List<LivroDetalhadoDTO> recomendacoes = null;
-    List<Genero> generos = null;
-    List<Genero> preferenciasDoUsuario = null;
-
-    String usuarioIdStr = request.getParameter("usuarioId");
-    Integer usuarioSelecionadoId = null;
-    if (usuarioIdStr != null && !usuarioIdStr.trim().isEmpty()) {
-        try { usuarioSelecionadoId = Integer.parseInt(usuarioIdStr.trim()); } catch (NumberFormatException ignored) {}
+    if (request.getAttribute("recomendacoesLoaded") == null) {
+        String usuarioId = request.getParameter("usuarioId");
+        String destino = request.getContextPath() + "/recomendacoes";
+        if (usuarioId != null && !usuarioId.trim().isEmpty()) destino += "?usuarioId=" + usuarioId;
+        response.sendRedirect(destino);
+        return;
     }
-
-    Usuario usuarioSelecionado = null;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            UsuarioDAO usuarioDAO = new UsuarioDAO();
-            GeneroDAO generoDAO = new GeneroDAO();
-            generos = generoDAO.listarTodos();
-            usuarios = usuarioDAO.listarTodos();
-
-            if (usuarioSelecionadoId == null && usuarios != null && !usuarios.isEmpty()) {
-                usuarioSelecionadoId = usuarios.get(0).getId();
-            }
-
-            if (usuarioSelecionadoId != null) {
-                for (Usuario u : usuarios) {
-                    if (u.getId() == usuarioSelecionadoId) { usuarioSelecionado = u; break; }
-                }
-                recomendacoes = new RecomendacaoController().obterRecomendacoes(usuarioSelecionadoId);
-                preferenciasDoUsuario = usuarioDAO.obterGenerosPreferidos(usuarioSelecionadoId);
-            }
-        }
-    } catch (Exception e) {
-        dbOnline = false;
-    }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<Usuario> usuarios = (List<Usuario>) request.getAttribute("usuarios");
+    List<LivroDetalhadoDTO> recomendacoes = (List<LivroDetalhadoDTO>) request.getAttribute("recomendacoes");
+    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
+    List<Genero> preferenciasDoUsuario = (List<Genero>) request.getAttribute("preferenciasDoUsuario");
+    Integer usuarioSelecionadoId = (Integer) request.getAttribute("usuarioSelecionadoId");
+    Usuario usuarioSelecionado = (Usuario) request.getAttribute("usuarioSelecionado");
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

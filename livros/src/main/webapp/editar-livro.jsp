@@ -1,48 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.controller.LivroController" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
 <%@ page import="com.livraria.model.Livro" %>
 <%@ page import="com.livraria.model.Genero" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Optional" %>
 <%
     String idStr = request.getParameter("id");
-    if (idStr == null || idStr.trim().isEmpty()) {
-                response.sendRedirect("livros?erro=ID+do+livro+n%C3%A3o+informado.");
+    int id = 0;
+    try {
+        id = Integer.parseInt(idStr == null ? "0" : idStr.trim());
+    } catch (NumberFormatException ignored) {
+    }
+    if (request.getAttribute("livroFormLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/editar-livro?id=" + id);
         return;
     }
-
-    int id;
-    try {
-        id = Integer.parseInt(idStr.trim());
-    } catch (NumberFormatException e) {
-        response.sendRedirect("livros?erro=ID+inv%C3%A1lido.");
-        return;
-    }
-
-    boolean dbOnline = false;
-    Livro livro = null;
-    List<Genero> generos = null;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            LivroController controller = new LivroController();
-            GeneroDAO generoDAO = new GeneroDAO();
-            generos = generoDAO.listarTodos();
-
-            Optional<Livro> opt = controller.buscarPorId(id);
-            if (opt.isPresent()) {
-                livro = opt.get();
-            } else {
-                response.sendRedirect("livros?erro=Livro+n%C3%A3o+encontrado.");
-                return;
-            }
-        }
-    } catch (Exception e) {
-        dbOnline = false;
-    }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    Livro livro = (Livro) request.getAttribute("livro");
+    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

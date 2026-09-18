@@ -1,19 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.dao.GeneroDAO" %>
 <%@ page import="com.livraria.model.Genero" %>
 <%@ page import="java.util.List" %>
 <%
-    boolean dbOnline = false;
-    List<Genero> generos = null;
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            generos = new GeneroDAO().listarTodos();
-        }
-    } catch (Exception e) {
-        dbOnline = false;
+    if (request.getAttribute("livroFormLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/novo-livro");
+        return;
     }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

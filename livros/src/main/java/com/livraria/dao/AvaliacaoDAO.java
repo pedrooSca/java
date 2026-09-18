@@ -1,6 +1,5 @@
 package com.livraria.dao;
 
-import com.livraria.config.ConnectionFactory;
 import com.livraria.model.Avaliacao;
 
 import java.sql.*;
@@ -12,7 +11,7 @@ import java.util.Map;
 /**
  * DAO para gerenciamento da tabela 'avaliacoes'.
  */
-public class AvaliacaoDAO {
+public class AvaliacaoDAO extends MysqlDAO {
 
     public AvaliacaoDAO() {
         garantirTabelaExiste();
@@ -33,7 +32,7 @@ public class AvaliacaoDAO {
                 "CONSTRAINT fk_avaliacoes_livros FOREIGN KEY (livro_id) REFERENCES livros(id) ON DELETE CASCADE" +
                 ") ENGINE=InnoDB";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
@@ -51,7 +50,7 @@ public class AvaliacaoDAO {
         }
 
         String sql = "INSERT INTO avaliacoes (usuario_id, livro_id, nota, comentario) VALUES (?, ?, ?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setInt(1, avaliacao.getUsuarioId());
@@ -82,7 +81,7 @@ public class AvaliacaoDAO {
                 "INNER JOIN livros l ON a.livro_id = l.id " +
                 "WHERE a.livro_id = ? ORDER BY a.data_avaliacao DESC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, livroId);
@@ -117,7 +116,7 @@ public class AvaliacaoDAO {
                 "INNER JOIN livros l ON a.livro_id = l.id " +
                 "ORDER BY a.data_avaliacao DESC LIMIT ?";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, limite > 0 ? limite : 50);
@@ -145,7 +144,7 @@ public class AvaliacaoDAO {
      */
     public double obterMediaPorLivro(int livroId) throws SQLException {
         String sql = "SELECT AVG(nota) as media FROM avaliacoes WHERE livro_id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, livroId);
@@ -165,7 +164,7 @@ public class AvaliacaoDAO {
         Map<Integer, Double> mapa = new HashMap<>();
         String sql = "SELECT livro_id, AVG(nota) as media FROM avaliacoes GROUP BY livro_id";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -181,7 +180,7 @@ public class AvaliacaoDAO {
      */
     public int contarTotal() throws SQLException {
         String sql = "SELECT COUNT(*) FROM avaliacoes";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 

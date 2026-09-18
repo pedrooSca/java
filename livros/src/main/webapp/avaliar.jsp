@@ -1,40 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.dao.AvaliacaoDAO" %>
-<%@ page import="com.livraria.dao.LivroDAO" %>
-<%@ page import="com.livraria.dao.UsuarioDAO" %>
 <%@ page import="com.livraria.model.Avaliacao" %>
 <%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
 <%@ page import="com.livraria.model.Usuario" %>
 <%@ page import="java.util.List" %>
 <%
-    boolean dbOnline = false;
-    List<LivroDetalhadoDTO> livros = null;
-    List<Usuario> usuarios = null;
-    List<Avaliacao> avaliacoes = null;
-
-    String livroIdStr = request.getParameter("livroId");
-    Integer livroSelecionadoId = null;
-    if (livroIdStr != null && !livroIdStr.trim().isEmpty()) {
-        try { livroSelecionadoId = Integer.parseInt(livroIdStr.trim()); } catch (NumberFormatException ignored) {}
+    if (request.getAttribute("avaliacoesLoaded") == null) {
+        String livroId = request.getParameter("livroId");
+        String destino = request.getContextPath() + "/avaliacoes";
+        if (livroId != null && !livroId.trim().isEmpty()) destino += "?livroId=" + livroId;
+        response.sendRedirect(destino);
+        return;
     }
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            livros = new LivroDAO().listarDetalhados();
-            usuarios = new UsuarioDAO().listarTodos();
-            AvaliacaoDAO avaliacaoDAO = new AvaliacaoDAO();
-            if (livroSelecionadoId != null) {
-                avaliacoes = avaliacaoDAO.listarPorLivro(livroSelecionadoId);
-            } else {
-                avaliacoes = avaliacaoDAO.listarTodas(50);
-            }
-        }
-    } catch (Exception e) {
-        dbOnline = false;
-    }
-
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<LivroDetalhadoDTO> livros = (List<LivroDetalhadoDTO>) request.getAttribute("livros");
+    List<Usuario> usuarios = (List<Usuario>) request.getAttribute("usuarios");
+    List<Avaliacao> avaliacoes = (List<Avaliacao>) request.getAttribute("avaliacoes");
+    Integer livroSelecionadoId = (Integer) request.getAttribute("livroSelecionadoId");
     LivroDetalhadoDTO livroSelecionado = null;
     if (livroSelecionadoId != null && livros != null) {
         for (LivroDetalhadoDTO l : livros) {

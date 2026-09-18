@@ -1,6 +1,5 @@
 package com.livraria.dao;
 
-import com.livraria.config.ConnectionFactory;
 import com.livraria.model.Genero;
 import com.livraria.model.Usuario;
 
@@ -12,13 +11,13 @@ import java.util.Optional;
 /**
  * DAO para gerenciamento da tabela 'usuarios' e relacionamento N:M 'usuario_generos'.
  */
-public class UsuarioDAO {
+public class UsuarioDAO extends MysqlDAO {
 
     public List<Usuario> listarTodos() throws SQLException {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT id, nome, email, data_cadastro FROM usuarios ORDER BY nome ASC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -43,7 +42,7 @@ public class UsuarioDAO {
 
     public Optional<Usuario> buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, nome, email, data_cadastro FROM usuarios WHERE id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -65,7 +64,7 @@ public class UsuarioDAO {
 
     public Usuario inserir(Usuario usuario) throws SQLException {
         String sql = "INSERT INTO usuarios (nome, email) VALUES (?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, usuario.getNome());
@@ -87,7 +86,7 @@ public class UsuarioDAO {
                      "INNER JOIN usuario_generos ug ON g.id = ug.genero_id " +
                      "WHERE ug.usuario_id = ? ORDER BY g.nome ASC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, usuarioId);
@@ -106,7 +105,7 @@ public class UsuarioDAO {
 
     public void adicionarPreferencia(int usuarioId, int generoId) throws SQLException {
         String sql = "INSERT IGNORE INTO usuario_generos (usuario_id, genero_id) VALUES (?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, usuarioId);
@@ -117,7 +116,7 @@ public class UsuarioDAO {
 
     public void removerPreferencia(int usuarioId, int generoId) throws SQLException {
         String sql = "DELETE FROM usuario_generos WHERE usuario_id = ? AND genero_id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, usuarioId);

@@ -1,6 +1,5 @@
 package com.livraria.dao;
 
-import com.livraria.config.ConnectionFactory;
 import com.livraria.model.LivroDetalhadoDTO;
 
 import java.sql.CallableStatement;
@@ -13,7 +12,7 @@ import java.util.List;
 /**
  * DAO especializado na execução da Stored Procedure 'sp_obter_recomendacoes_usuario'.
  */
-public class RecomendacaoDAO {
+public class RecomendacaoDAO extends MysqlDAO {
 
     /**
      * Executa a Stored Procedure 'sp_obter_recomendacoes_usuario' no MySQL.
@@ -27,7 +26,7 @@ public class RecomendacaoDAO {
         List<LivroDetalhadoDTO> recomendacoes = new ArrayList<>();
         String callSql = "{CALL sp_obter_recomendacoes_usuario(?)}";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              CallableStatement cs = conn.prepareCall(callSql)) {
 
             cs.setInt(1, usuarioId);

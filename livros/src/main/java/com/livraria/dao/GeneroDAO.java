@@ -1,6 +1,5 @@
 package com.livraria.dao;
 
-import com.livraria.config.ConnectionFactory;
 import com.livraria.model.Genero;
 
 import java.sql.*;
@@ -11,13 +10,13 @@ import java.util.Optional;
 /**
  * DAO para gerenciamento da tabela 'generos'.
  */
-public class GeneroDAO {
+public class GeneroDAO extends MysqlDAO {
 
     public List<Genero> listarTodos() throws SQLException {
         List<Genero> lista = new ArrayList<>();
         String sql = "SELECT id, nome, descricao FROM generos ORDER BY nome ASC";
 
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -34,7 +33,7 @@ public class GeneroDAO {
 
     public Optional<Genero> buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, nome, descricao FROM generos WHERE id = ?";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -53,7 +52,7 @@ public class GeneroDAO {
 
     public Genero inserir(Genero genero) throws SQLException {
         String sql = "INSERT INTO generos (nome, descricao) VALUES (?, ?)";
-        try (Connection conn = ConnectionFactory.getConnection();
+        try (Connection conn = obterConexao();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, genero.getNome());

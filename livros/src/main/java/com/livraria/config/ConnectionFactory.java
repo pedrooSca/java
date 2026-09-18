@@ -12,6 +12,8 @@ import java.util.Properties;
  */
 public class ConnectionFactory {
 
+    private static final ConnectionFactory INSTANCE = new ConnectionFactory();
+
     private static String url;
     private static String user;
     private static String password;
@@ -53,13 +55,21 @@ public class ConnectionFactory {
     private ConnectionFactory() {
     }
 
+    public static ConnectionFactory getInstance() {
+        return INSTANCE;
+    }
+
+    public Connection abrirConexao() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
+    }
+
     /**
      * Obtém uma nova conexão ativa com o banco de dados.
      * @return Connection JDBC
      * @throws SQLException Caso a conexão falhe
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url, user, password);
+        return INSTANCE.abrirConexao();
     }
 
     /**

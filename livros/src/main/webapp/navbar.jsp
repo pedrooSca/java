@@ -30,14 +30,14 @@
             <ul class="nav-menu">
                 <li><a href="index.jsp" class="nav-link <%= "index".equals(currentPage) ? "active" : "" %>">Início</a></li>
                 <li><a href="livros" class="nav-link <%= "livros".equals(currentPage) ? "active" : "" %>">Catálogo & Pesquisa</a></li>
-                <li><a href="avaliar.jsp" class="nav-link <%= "avaliar".equals(currentPage) ? "active" : "" %>">Avaliações</a></li>
-                <li><a href="recomendacoes.jsp" class="nav-link <%= "recomendacoes".equals(currentPage) ? "active" : "" %>">Recomendações</a></li>
-                <li><a href="usuarios.jsp" class="nav-link <%= "usuarios".equals(currentPage) ? "active" : "" %>">Usuários</a></li>
-                <li><a href="auditoria.jsp" class="nav-link <%= "auditoria".equals(currentPage) ? "active" : "" %>">Auditoria</a></li>
+                <li><a href="avaliacoes" class="nav-link <%= "avaliar".equals(currentPage) ? "active" : "" %>">Avaliações</a></li>
+                <li><a href="recomendacoes" class="nav-link <%= "recomendacoes".equals(currentPage) ? "active" : "" %>">Recomendações</a></li>
+                <li><a href="usuarios" class="nav-link <%= "usuarios".equals(currentPage) ? "active" : "" %>">Usuários</a></li>
+                <li><a href="auditoria" class="nav-link <%= "auditoria".equals(currentPage) ? "active" : "" %>">Auditoria</a></li>
             </ul>
         </nav>
         <div class="nav-actions">
-            <a href="novo-livro.jsp" class="btn btn-primary btn-sm">
+            <a href="novo-livro" class="btn btn-primary btn-sm">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Novo Livro
             </a>

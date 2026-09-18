@@ -1,22 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.config.ConnectionFactory" %>
-<%@ page import="com.livraria.dao.LogAuditoriaDAO" %>
 <%@ page import="com.livraria.model.LogAlteracaoLivro" %>
 <%@ page import="java.util.List" %>
 <%
-    boolean dbOnline = false;
-    List<LogAlteracaoLivro> logs = null;
-    int totalLogs = 0;
-
-    try {
-        dbOnline = ConnectionFactory.testarConexao();
-        if (dbOnline) {
-            logs = new LogAuditoriaDAO().listarLogs();
-            totalLogs = logs != null ? logs.size() : 0;
-        }
-    } catch (Exception e) {
-        dbOnline = false;
+    if (request.getAttribute("auditoriaLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/auditoria");
+        return;
     }
+    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
+    List<LogAlteracaoLivro> logs = (List<LogAlteracaoLivro>) request.getAttribute("logs");
+    int totalLogs = logs == null ? 0 : logs.size();
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

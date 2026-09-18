@@ -1,54 +1,64 @@
 # Sistema de Recomendação de Livros
 
-Este projeto é uma aplicação Java em arquitetura MVC para gestão e recomendação de livros, com frontend em JSP e banco de dados MySQL. A aplicação pode ser executada em containers com Docker Compose para facilitar o ambiente de desenvolvimento.
+Aplicação Java em arquitetura MVC para cadastro, consulta e recomendação de livros, com front-end em JSP e persistência em MySQL. O projeto foi estruturado para rodar em ambiente local com Maven e também pode ser executado com Docker Compose.
 
 ## Tecnologias
 
 - Java 25
 - Maven
-- Apache Tomcat 9
+- JSP + Servlets
 - MySQL 8
 - Docker / Docker Compose
-- JSP + servlet-based MVC
+- Tomcat 9 (execução em WAR)
 
 ## Estrutura do projeto
 
-- [docker-compose.yml](docker-compose.yml): define os serviços do banco e da aplicação
-- [livros](livros): projeto Java/Maven da aplicação
-- [sql/init.sql](sql/init.sql): script de inicialização do banco
+- [docker-compose.yml](docker-compose.yml): configuração dos containers da aplicação e do banco
+- [livros](livros): projeto principal em Java/Maven
+- [livros/src/main/java](livros/src/main/java): código fonte da aplicação
+- [livros/src/main/webapp](livros/src/main/webapp): páginas JSP e recursos web
+- [sql/init.sql](sql/init.sql): script de inicialização do banco de dados
 - [livros/Dockerfile](livros/Dockerfile): imagem da aplicação web
 
-## Como executar
+## Funcionalidades
 
-### 1) Pré-requisitos
+- cadastro de usuários
+- cadastro de livros
+- cadastro de gêneros
+- avaliações
+- recomendações por usuário
+- página inicial e navegação via servlets
 
-- Docker instalado
-- Docker Compose instalado
+## Pré-requisitos
 
-### 2) Subir o ambiente
+- Java 25
+- Maven 3.9+
+- Docker e Docker Compose (opcional, para ambiente em container)
+- MySQL em execução local ou via Docker
 
-No diretório raiz do projeto, execute:
+## Execução via Docker
+
+No diretório raiz do projeto:
 
 ```bash
 docker compose up --build
 ```
 
-Isso irá subir:
-
-- banco MySQL em localhost:3306
-- aplicação web em http://localhost:8080
-
-### 3) Acessar a aplicação
-
-Abra no navegador:
+A aplicação fica disponível em:
 
 ```text
 http://localhost:8080
 ```
 
+O banco fica disponível em:
+
+```text
+localhost:3306
+```
+
 ## Configuração do banco
 
-A conexão com o banco é configurada via variáveis de ambiente no arquivo [docker-compose.yml](docker-compose.yml):
+A conexão do projeto é configurada no arquivo [docker-compose.yml](docker-compose.yml). Os valores padrão do ambiente são:
 
 - Banco: `db_recomendador_livros`
 - Usuário: `root`
@@ -56,17 +66,36 @@ A conexão com o banco é configurada via variáveis de ambiente no arquivo [doc
 
 O script de criação inicial está em [sql/init.sql](sql/init.sql).
 
-## Build local da aplicação
+## Build local
 
-Se quiser compilar a aplicação diretamente:
+Para compilar e empacotar o projeto localmente:
 
 ```bash
 cd livros
 mvn clean package
 ```
 
+O artefato gerado será:
+
+```text
+livros/target/livros.war
+```
+
+## Validação atual
+
+O projeto foi validado com build real do Maven e compilou com sucesso:
+
+```bash
+cd "c:/Users/vivis/Downloads/java/livros"; & "c:/Users/vivis/Downloads/java/apache-maven-3.9.16/bin/mvn.cmd" clean package
+```
+
+Resultado verificado:
+
+- `BUILD SUCCESS`
+- `Tests run: 9, Failures: 0, Errors: 0, Skipped: 0`
+
 ## Observações
 
-- A aplicação é empacotada em WAR e executada no Tomcat.
-- O projeto foi pensado para facilitar a execução em ambiente local e de testes com containers.
+- A estrutura usa camadas MVC com servlets, services e DAO, o que é comum em projetos Java web.
+- O projeto está em estado funcional para apresentação e entrega, desde que o ambiente de banco e aplicação esteja configurado corretamente.
 - O diretório [livros/target](livros/target) será gerado após o build.
