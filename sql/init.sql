@@ -30,18 +30,6 @@ CREATE TABLE IF NOT EXISTS generos (
     descricao VARCHAR(255)
 ) ENGINE=InnoDB;
 
-INSERT IGNORE INTO generos (nome, descricao) VALUES
-    ('Ação', 'Narrativas com conflitos, aventura e ritmo intenso.'),
-    ('Aventura', 'Histórias de exploração, viagens e grandes desafios.'),
-    ('Biografia', 'Relatos sobre a vida e a trajetória de pessoas reais.'),
-    ('Fantasia', 'Obras com elementos mágicos, mitológicos ou sobrenaturais.'),
-    ('Ficção científica', 'Histórias baseadas em ciência, tecnologia e futuros possíveis.'),
-    ('História', 'Obras ambientadas em períodos ou acontecimentos históricos.'),
-    ('Romance', 'Narrativas centradas em relacionamentos e sentimentos.'),
-    ('Suspense', 'Histórias de tensão, mistério e expectativa.'),
-    ('Terror', 'Obras destinadas a provocar medo e tensão.'),
-    ('Literatura infantil', 'Livros produzidos para crianças e jovens leitores.');
-
 -- ------------------------------------------------------------
 -- 3. TABELA DE LIVROS (Alvo Principal do CRUD)
 -- ------------------------------------------------------------
@@ -165,3 +153,16 @@ BEGIN
 END;
 //
 DELIMITER ;
+-- Contas de acesso e gêneros iniciais (também aplicados na atualização da API).
+CREATE TABLE IF NOT EXISTS contas_acesso (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    perfil ENUM('ADMIN', 'CONSULTA') NOT NULL DEFAULT 'CONSULTA'
+) ENGINE=InnoDB;
+
+INSERT INTO generos (nome, descricao) VALUES
+('Ficção Científica', 'Ciência, tecnologia e futuros possíveis'),
+('Fantasia', 'Mundos imaginários e aventuras'),
+('Romance', 'Histórias e relações humanas')
+ON DUPLICATE KEY UPDATE nome = VALUES(nome);
