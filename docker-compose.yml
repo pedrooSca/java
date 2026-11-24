@@ -1,38 +1,41 @@
 services:
-  # 1. Banco de Dados MySQL 8.0
   db:
     image: mysql:8.0
-    container_name: mysql-container
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no arquivo .env}
       MYSQL_DATABASE: db_recomendador_livros
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - livraria-net
+      - ./api/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
-  # 2. Servidor Web Tomcat (Aplicação Java MVC / JSP)
+  api:
+    build: ./api
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      DB_URL: "jdbc:mysql://db:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Defina ADMIN_EMAIL no arquivo .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Defina ADMIN_PASSWORD no arquivo .env}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no arquivo .env}
+    depends_on:
+      db:
+        condition: service_healthy
+
   web:
-    build:
-      context: ./livros
-      dockerfile: Dockerfile
-    container_name: livraria-web
+    build: ./livros
     ports:
       - "8080:8080"
     environment:
-      DB_URL: "jdbc:mysql://db:3306/db_recomendador_livros?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8"
-      DB_USER: "root"
-      DB_PASSWORD: "rootpassword"
+      API_URL: http://api:8080
     depends_on:
-      - db
-    networks:
-      - livraria-net
+      - api
 
 volumes:
   db_data:
-
-networks:
-  livraria-net:

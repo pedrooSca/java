@@ -581,3 +581,6 @@ footer {
         justify-content: center;
     }
 }
+
+/* Respeita o atributo hidden mesmo em componentes com display próprio. */
+[hidden] { display: none !important; }

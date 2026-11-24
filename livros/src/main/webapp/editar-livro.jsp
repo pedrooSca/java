@@ -1,31 +1,12 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.model.Livro" %>
-<%@ page import="com.livraria.model.Genero" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Optional" %>
-<%
-    String idStr = request.getParameter("id");
-    int id = 0;
-    try {
-        id = Integer.parseInt(idStr == null ? "0" : idStr.trim());
-    } catch (NumberFormatException ignored) {
-    }
-    if (request.getAttribute("livroFormLoaded") == null) {
-        response.sendRedirect(request.getContextPath() + "/editar-livro?id=" + id);
-        return;
-    }
-    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
-    Livro livro = (Livro) request.getAttribute("livro");
-    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
-%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Livro #<%= id %> | Livraria</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <title>Editar Livro  | Livraria</title>
+    <link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/api.css"></head>
 <body>
     <jsp:include page="navbar.jsp">
         <jsp:param name="activePage" value="livros"/>
@@ -36,69 +17,52 @@
             <a href="livros" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;">
                 ← Voltar para o Catálogo
             </a>
-            <h1>Editar Livro #<%= id %></h1>
+            <h1>Editar Livro </h1>
             <p>Atualize as informações do livro. A alteração disparará automaticamente o trigger de auditoria no MySQL.</p>
         </div>
 
-        <% if (!dbOnline) { %>
-            <div class="alert alert-error">
-                O banco de dados não está respondendo. Não é possível editar livros no momento.
-            </div>
-        <% } else if (livro != null) { %>
-
-        <div style="max-width: 680px; margin: 0 auto;">
-            <!-- Aviso de Trigger -->
-            <div class="alert alert-info">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <div>
-                    <strong>Trigger de Auditoria Ativo:</strong> Ao confirmar esta atualização, a trigger <code>trg_depois_atualizar_livro</code> registrará o título anterior e o novo na tabela <code>log_alteracoes_livros</code>.
-                </div>
-            </div>
-
+        <div id="api-message" role="status" aria-live="polite"></div><div id="api-content" data-page="editar-livro"><div style="max-width: 680px; margin: 0 auto;">
+            <div class="alert alert-info">Ao salvar, a trigger de auditoria registra o título anterior e o novo no histórico de alterações.</div>
             <div class="card">
-                <form action="livros" method="post">
-                    <input type="hidden" name="acao" value="atualizar_livro">
-                    <input type="hidden" name="id" value="<%= livro.getId() %>">
+                <form id="book-form">
+
 
                     <div class="form-group">
                         <label for="titulo" class="form-label">Título da Obra *</label>
-                        <input type="text" id="titulo" name="titulo" value="<%= livro.getTitulo() %>" class="form-control" required autofocus>
+                        <input type="text" id="titulo" name="titulo" maxlength="150" class="form-control" placeholder="Ex: Duna, O Senhor dos Anéis..." required autofocus>
+                        <div class="form-hint">Informe o título completo da publicação.</div>
                     </div>
 
                     <div class="form-group">
                         <label for="autor" class="form-label">Nome do Autor *</label>
-                        <input type="text" id="autor" name="autor" value="<%= livro.getAutor() %>" class="form-control" required>
+                        <input type="text" id="autor" name="autor" maxlength="100" class="form-control" placeholder="Ex: Frank Herbert, J.R.R. Tolkien..." required>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="form-group">
                             <label for="generoId" class="form-label">Gênero Literário *</label>
                             <select id="generoId" name="generoId" class="form-control" required>
-                                <% if (generos != null) {
-                                    for (Genero g : generos) { 
-                                        boolean sel = g.getId().equals(livro.getGeneroId());
-                                %>
-                                    <option value="<%= g.getId() %>" <%= sel ? "selected" : "" %>><%= g.getNome() %></option>
-                                <%  } 
-                                   } %>
+                                <option value="" disabled selected>Selecione um gênero...</option>
+
                             </select>
+                            <div class="form-hint">Usado pelo algoritmo de recomendação.</div>
                         </div>
 
                         <div class="form-group">
                             <label for="anoPublicacao" class="form-label">Ano de Publicação</label>
-                            <input type="number" id="anoPublicacao" name="anoPublicacao" value="<%= livro.getAnoPublicacao() != null ? livro.getAnoPublicacao() : "" %>" class="form-control" min="1000" max="2100">
+                            <input type="number" id="anoPublicacao" name="anoPublicacao" class="form-control" placeholder="Ex: 1965" min="0">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="isbn" class="form-label">Código ISBN</label>
-                        <input type="text" id="isbn" name="isbn" value="<%= livro.getIsbn() != null ? livro.getIsbn() : "" %>" class="form-control">
+                        <label for="isbn" class="form-label">Código ISBN (opcional)</label>
+                        <input type="text" id="isbn" name="isbn" maxlength="20" class="form-control" placeholder="Ex: 978-8576572008">
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 20px;">
                         <a href="livros" class="btn btn-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-primary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             Salvar Alterações
                         </button>
                     </div>
@@ -106,13 +70,12 @@
             </div>
         </div>
 
-        <% } %>
-    </main>
+        </div><noscript><div class="alert alert-warning">Ative JavaScript para utilizar o sistema.</div></noscript></main>
 
     <footer>
         <div class="container">
             Livraria · Sistema de Recomendações de Livros por Gênero · UNIUBE ADS MVC
         </div>
     </footer>
-</body>
+<script src="js/app.js?v=3" defer></script></body>
 </html>

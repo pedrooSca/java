@@ -8,7 +8,7 @@
   <version>1.0</version>
   <packaging>war</packaging>
 
-  <name>livros Maven Webapp</name>
+  <name>Livraria Front-end e Proxy</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,16 +18,12 @@
   </properties>
 
   <dependencies>
+    <dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-jasper</artifactId><version>9.0.113</version><scope>test</scope></dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <version>8.2.0</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -40,6 +36,7 @@
   <build>
     <finalName>livros</finalName>
     <plugins>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.4</version></plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -51,14 +48,6 @@
         <version>3.4.0</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <mainClass>com.livraria.Main</mainClass>
         </configuration>
       </plugin>
     </plugins>

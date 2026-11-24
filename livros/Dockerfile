@@ -1,12 +1,11 @@
-# Imagem oficial do Apache Tomcat 9 com Java 25
+FROM maven:3.9-eclipse-temurin-25 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn -B package
+
 FROM tomcat:9.0-jdk25-temurin
-
-# Limpa os exemplos padrão do Tomcat para servir o projeto na raiz
 RUN rm -rf /usr/local/tomcat/webapps/*
-
-# Copia o pacote WAR da aplicação como ROOT.war
-COPY target/livros.war /usr/local/tomcat/webapps/ROOT.war
-
+COPY --from=build /app/target/livros.war /usr/local/tomcat/webapps/ROOT.war
 EXPOSE 8080
-
 CMD ["catalina.sh", "run"]

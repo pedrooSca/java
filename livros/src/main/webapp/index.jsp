@@ -1,27 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.model.Avaliacao" %>
-<%@ page import="com.livraria.model.LivroDetalhadoDTO" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Map" %>
-<%
-    if (request.getAttribute("homeLoaded") == null) {
-        response.sendRedirect(request.getContextPath() + "/home");
-        return;
-    }
-    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
-    List<LivroDetalhadoDTO> livros = (List<LivroDetalhadoDTO>) request.getAttribute("livros");
-    List<LivroDetalhadoDTO> recomendacoes = (List<LivroDetalhadoDTO>) request.getAttribute("recomendacoes");
-    List<Avaliacao> avaliacoesRecentes = (List<Avaliacao>) request.getAttribute("avaliacoesRecentes");
-    Map<Integer, Double> medias = (Map<Integer, Double>) request.getAttribute("medias");
-    Integer totalLivrosAttr = (Integer) request.getAttribute("totalLivros");
-    Integer totalGenerosAttr = (Integer) request.getAttribute("totalGeneros");
-    Integer totalUsuariosAttr = (Integer) request.getAttribute("totalUsuarios");
-    Integer totalAvaliacoesAttr = (Integer) request.getAttribute("totalAvaliacoes");
-    int totalLivros = totalLivrosAttr == null ? 0 : totalLivrosAttr;
-    int totalGeneros = totalGenerosAttr == null ? 0 : totalGenerosAttr;
-    int totalUsuarios = totalUsuariosAttr == null ? 0 : totalUsuariosAttr;
-    int totalAvaliacoes = totalAvaliacoesAttr == null ? 0 : totalAvaliacoesAttr;
-%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -32,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <style>
         .hero {
             background: linear-gradient(135deg, #2d2218 0%, #4a3323 50%, #a84f32 100%);
@@ -68,7 +45,7 @@
         .quick-link-title { font-weight: 700; font-size: 0.97rem; color: var(--ink); margin-bottom: 4px; }
         .quick-link-desc { font-size: 0.82rem; color: var(--muted); }
     </style>
-</head>
+<link rel="stylesheet" href="css/api.css"></head>
 <body>
     <jsp:include page="navbar.jsp">
         <jsp:param name="activePage" value="index"/>
@@ -88,36 +65,7 @@
         </div>
     </section>
 
-    <main class="container" style="padding-bottom: 60px;">
-
-        <% if (!dbOnline) { %>
-            <div class="alert alert-error">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <div><strong>Banco de dados inacessível.</strong> Verifique se os containers Docker estão ativos: <code>docker compose up -d</code></div>
-            </div>
-        <% } else { %>
-
-        <!-- Métricas Rápidas -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value"><%= totalLivros %></div>
-                <div class="stat-label">Livros no acervo</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><%= totalGeneros %></div>
-                <div class="stat-label">Gêneros literários</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><%= totalUsuarios %></div>
-                <div class="stat-label">Leitores cadastrados</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><%= totalAvaliacoes %></div>
-                <div class="stat-label">Avaliações registradas</div>
-            </div>
-        </div>
-
-        <!-- Acesso Rápido -->
+    <main class="container" style="padding-bottom: 60px;"><div id="api-message" role="status" aria-live="polite"></div><div id="api-content" data-page="index"><div id="home-stats" class="stats-grid"></div><!-- Acesso Rápido -->
         <h2 class="section-title">Acesso Rápido</h2>
         <div class="quick-links">
             <a href="livros" class="quick-link">
@@ -152,58 +100,12 @@
             </a>
         </div>
 
-        <!-- Recomendações para Aluno ADS -->
-        <% if (recomendacoes != null && !recomendacoes.isEmpty()) { %>
-        <h2 class="section-title">
-            Recomendações para Aluno ADS <span>via Stored Procedure</span>
-        </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 40px;">
-            <% for (LivroDetalhadoDTO rec : recomendacoes) { %>
-            <div class="rec-card">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <span class="badge-genre"><%= rec.getGeneroNome() %></span>
-                    <span style="background: var(--accent-soft); color: var(--accent); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;">✦ Rec.</span>
-                </div>
-                <h3 style="font-family: 'Playfair Display', serif; font-size: 1.1rem; line-height: 1.25; margin-bottom: 6px;"><%= rec.getTitulo() %></h3>
-                <p style="font-size: 0.87rem;">por <%= rec.getAutor() %></p>
-            </div>
-            <% } %>
-        </div>
-        <% } %>
-
-        <!-- Avaliações Recentes -->
-        <% if (avaliacoesRecentes != null && !avaliacoesRecentes.isEmpty()) { %>
-        <h2 class="section-title">
-            Avaliações Recentes <span><%= avaliacoesRecentes.size() %> comentários</span>
-        </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 40px;">
-            <% for (Avaliacao av : avaliacoesRecentes) {
-                StringBuilder stars = new StringBuilder();
-                for (int s = 1; s <= 5; s++) { stars.append(s <= av.getNota() ? "★" : "☆"); }
-            %>
-            <div class="rec-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <strong style="font-size: 0.93rem;"><%= av.getUsuarioNome() %></strong>
-                    <span style="color: var(--star); font-size: 1rem;"><%= stars.toString() %></span>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">sobre <em><%= av.getLivroTitulo() %></em></div>
-                <% if (av.getComentario() != null && !av.getComentario().isEmpty()) { %>
-                <p style="font-size: 0.88rem; font-style: italic; color: var(--ink); line-height: 1.5;">
-                    "<%= av.getComentario().length() > 120 ? av.getComentario().substring(0,120) + "..." : av.getComentario() %>"
-                </p>
-                <% } %>
-            </div>
-            <% } %>
-        </div>
-        <% } %>
-
-        <% } /* dbOnline */ %>
-    </main>
+        <h2 id="recommendation-title" class="section-title">Recomendações</h2><div id="books" class="book-grid" style="margin-bottom:40px"></div><h2 class="section-title">Avaliações Recentes</h2><div id="reviews"></div></div><noscript><div class="alert alert-warning">Ative JavaScript para utilizar o sistema.</div></noscript></main>
 
     <footer>
         <div class="container">
             Livraria · Sistema de Recomendações de Livros por Gênero · UNIUBE ADS MVC
         </div>
     </footer>
-</body>
+<script src="js/app.js?v=3" defer></script></body>
 </html>

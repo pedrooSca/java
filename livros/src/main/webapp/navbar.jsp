@@ -13,8 +13,8 @@
         else currentPage = "";
     }
 
-    String msg = request.getParameter("msg");
-    String erro = request.getParameter("erro");
+
+
 %>
 <header class="nav-header">
     <div class="container nav-container">
@@ -37,34 +37,12 @@
             </ul>
         </nav>
         <div class="nav-actions">
-            <a href="novo-livro" class="btn btn-primary btn-sm">
+            <span id="account-profile"></span>
+            <button id="logout" type="button" class="btn btn-secondary btn-sm">Sair</button>
+            <a data-admin href="novo-livro" class="btn btn-primary btn-sm">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Novo Livro
             </a>
         </div>
     </div>
 </header>
-
-<div class="container" style="margin-top: 22px;">
-<% if (msg != null && !msg.isEmpty()) { 
-    String textoMsg = msg;
-    if ("livro_criado".equals(msg)) textoMsg = "Livro cadastrado com sucesso no catálogo!";
-    else if ("livro_atualizado".equals(msg)) textoMsg = "Livro atualizado com sucesso! A trigger gravou o evento no log de auditoria.";
-    else if ("livro_excluido".equals(msg)) textoMsg = "Livro excluído com sucesso! A trigger registrou a exclusão no log.";
-    else if ("avaliacao_criada".equals(msg)) textoMsg = "Avaliação registrada com sucesso! Obrigado pela sua opinião.";
-    else if ("preferencia_atualizada".equals(msg)) textoMsg = "Preferências literárias do usuário atualizadas com sucesso!";
-    else if ("usuario_criado".equals(msg)) textoMsg = "Novo usuário cadastrado com sucesso!";
-%>
-    <div class="alert alert-success">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        <div><strong>Sucesso!</strong> <%= textoMsg %></div>
-    </div>
-<% } %>
-
-<% if (erro != null && !erro.isEmpty()) { %>
-    <div class="alert alert-error">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <div><strong>Atenção:</strong> <%= erro %></div>
-    </div>
-<% } %>
-</div>

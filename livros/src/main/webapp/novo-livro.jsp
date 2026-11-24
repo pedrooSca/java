@@ -1,22 +1,12 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.livraria.model.Genero" %>
-<%@ page import="java.util.List" %>
-<%
-    if (request.getAttribute("livroFormLoaded") == null) {
-        response.sendRedirect(request.getContextPath() + "/novo-livro");
-        return;
-    }
-    boolean dbOnline = Boolean.TRUE.equals(request.getAttribute("dbOnline"));
-    List<Genero> generos = (List<Genero>) request.getAttribute("generos");
-%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Novo Livro | Livraria</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/api.css"></head>
 <body>
     <jsp:include page="navbar.jsp">
         <jsp:param name="activePage" value="novo"/>
@@ -31,26 +21,20 @@
             <p>Adicione um novo livro ao acervo da livraria preenchendo as informações abaixo.</p>
         </div>
 
-        <% if (!dbOnline) { %>
-            <div class="alert alert-error">
-                O banco de dados não está respondendo. Não é possível cadastrar livros no momento.
-            </div>
-        <% } else { %>
-
-        <div style="max-width: 680px; margin: 0 auto;">
+        <div id="api-message" role="status" aria-live="polite"></div><div id="api-content" data-page="novo-livro"><div style="max-width: 680px; margin: 0 auto;">
             <div class="card">
-                <form action="livros" method="post">
-                    <input type="hidden" name="acao" value="cadastrar_livro">
+                <form id="book-form">
+
 
                     <div class="form-group">
                         <label for="titulo" class="form-label">Título da Obra *</label>
-                        <input type="text" id="titulo" name="titulo" class="form-control" placeholder="Ex: Duna, O Senhor dos Anéis..." required autofocus>
+                        <input type="text" id="titulo" name="titulo" maxlength="150" class="form-control" placeholder="Ex: Duna, O Senhor dos Anéis..." required autofocus>
                         <div class="form-hint">Informe o título completo da publicação.</div>
                     </div>
 
                     <div class="form-group">
                         <label for="autor" class="form-label">Nome do Autor *</label>
-                        <input type="text" id="autor" name="autor" class="form-control" placeholder="Ex: Frank Herbert, J.R.R. Tolkien..." required>
+                        <input type="text" id="autor" name="autor" maxlength="100" class="form-control" placeholder="Ex: Frank Herbert, J.R.R. Tolkien..." required>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -58,24 +42,20 @@
                             <label for="generoId" class="form-label">Gênero Literário *</label>
                             <select id="generoId" name="generoId" class="form-control" required>
                                 <option value="" disabled selected>Selecione um gênero...</option>
-                                <% if (generos != null) {
-                                    for (Genero g : generos) { %>
-                                    <option value="<%= g.getId() %>"><%= g.getNome() %></option>
-                                <%  } 
-                                   } %>
+
                             </select>
                             <div class="form-hint">Usado pelo algoritmo de recomendação.</div>
                         </div>
 
                         <div class="form-group">
                             <label for="anoPublicacao" class="form-label">Ano de Publicação</label>
-                            <input type="number" id="anoPublicacao" name="anoPublicacao" class="form-control" placeholder="Ex: 1965" min="1000" max="2100">
+                            <input type="number" id="anoPublicacao" name="anoPublicacao" class="form-control" placeholder="Ex: 1965" min="0">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="isbn" class="form-label">Código ISBN (opcional)</label>
-                        <input type="text" id="isbn" name="isbn" class="form-control" placeholder="Ex: 978-8576572008">
+                        <input type="text" id="isbn" name="isbn" maxlength="20" class="form-control" placeholder="Ex: 978-8576572008">
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 20px;">
@@ -89,13 +69,12 @@
             </div>
         </div>
 
-        <% } %>
-    </main>
+        </div><noscript><div class="alert alert-warning">Ative JavaScript para utilizar o sistema.</div></noscript></main>
 
     <footer>
         <div class="container">
             Livraria · Sistema de Recomendações de Livros por Gênero · UNIUBE ADS MVC
         </div>
     </footer>
-</body>
+<script src="js/app.js?v=3" defer></script></body>
 </html>

@@ -1,101 +1,142 @@
-# Sistema de Recomendação de Livros
+# Livraria — recomendação de livros
 
-Aplicação Java em arquitetura MVC para cadastro, consulta e recomendação de livros, com front-end em JSP e persistência em MySQL. O projeto foi estruturado para rodar em ambiente local com Maven e também pode ser executado com Docker Compose.
+Projeto simples em Java, JSP e MySQL, separado em duas aplicações independentes:
 
-## Tecnologias
+- [livros/](./livros/): front-end (JSP, CSS e JavaScript) e mini backend que encaminha as requisições para a API. Não acessa o banco.
+- [api/](./api/): API JSON, regras de negócio, modelos e DAOs. Não contém telas nem arquivos de front-end.
+- [api/sql/init.sql](./api/sql/init.sql): criação do banco, dados iniciais, view, triggers e procedure de recomendações.
+- [postman/](./postman/): coleção para testar os endpoints.
 
-- Java 25
-- Maven
-- JSP + Servlets
-- MySQL 8
-- Docker / Docker Compose
-- Tomcat 9 (execução em WAR)
+Fluxo: navegador → front-end e proxy → API → MySQL.
 
-## Estrutura do projeto
+O sistema mantém cadastro, pesquisa, edição e exclusão de livros, cadastro de leitores, avaliações, preferências, recomendações e auditoria.
 
-- [docker-compose.yml](docker-compose.yml): configuração dos containers da aplicação e do banco
-- [livros](livros): projeto principal em Java/Maven
-- [livros/src/main/java](livros/src/main/java): código fonte da aplicação
-- [livros/src/main/webapp](livros/src/main/webapp): páginas JSP e recursos web
-- [sql/init.sql](sql/init.sql): script de inicialização do banco de dados
-- [livros/Dockerfile](livros/Dockerfile): imagem da aplicação web
+## Executar com Docker
 
-## Funcionalidades
+1. Copie [.env.example](./.env.example) para `.env` e preencha:
+   - `MYSQL_ROOT_PASSWORD`: senha do MySQL.
+   - `ADMIN_EMAIL` e `ADMIN_PASSWORD`: acesso inicial do administrador (senha de 12 a 200 caracteres).
+   - `JWT_SECRET`: segredo aleatório de pelo menos 32 bytes, usado somente pela API.
 
-- cadastro de usuários
-- cadastro de livros
-- cadastro de gêneros
-- avaliações
-- recomendações por usuário
-- página inicial e navegação via servlets
+   O arquivo `.env` é local e não deve ser publicado. No PowerShell, um segredo pode ser gerado com `[guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')`.
+2. Na raiz, execute:
 
-## Pré-requisitos
-
-- Java 25
-- Maven 3.9+
-- Docker e Docker Compose (opcional, para ambiente em container)
-- MySQL em execução local ou via Docker
-
-## Execução via Docker
-
-No diretório raiz do projeto:
-
-```bash
-docker compose up --build
+```sh
+docker compose up --build -d
 ```
 
-A aplicação fica disponível em:
+Abra o site em http://localhost:8080 e entre com `ADMIN_EMAIL` e `ADMIN_PASSWORD`. A API pode ser testada diretamente em http://localhost:8081/api/livros, enviando o JWT. A porta 8081 fica vinculada somente ao computador local para os testes com Postman.
+
+### Primeiro acesso do administrador
+
+O e-mail inicial sugerido é `admin@livraria.local`. A primeira senha é a que você definir em `ADMIN_PASSWORD` no `.env`; não existe uma senha fixa embutida no projeto. Para uma demonstração local, você pode configurar `ADMIN_PASSWORD=LivrariaAdmin123!` e entrar com essa senha. Use uma senha própria ao hospedar o sistema. As credenciais reais do ambiente local não são publicadas no repositório.
+
+O banco é inicializado automaticamente na primeira execução, incluindo os gêneros necessários para cadastrar livros. Na inicialização da API, uma atualização idempotente também cria a tabela de acesso e insere os gêneros ausentes em bancos existentes. Ela não apaga registros nem redefine senhas de contas existentes. Os dados ficam no volume `db_data`. Para parar sem apagar os dados:
+
+```sh
+docker compose down
+```
+
+## Organização
 
 ```text
-http://localhost:8080
+api/
+  src/main/java/com/livraria/
+    controller/                 # endpoints e contrato JSON
+    security/                   # filtro JWT e hash de senhas
+    service/                    # regras de negócio
+    dao/                        # consultas JDBC
+    model/                      # dados
+    config/                     # conexão MySQL
+  src/main/resources/          # db.properties e atualização idempotente do banco
+  src/test/java/
+  sql/
+  pom.xml
+  Dockerfile
+livros/
+  src/main/java/com/livraria/controller/
+    PaginaServlet.java          # rotas das telas
+    ApiProxyServlet.java        # ligação HTTP com a API
+  src/main/webapp/              # login, JSP, CSS e JavaScript
+  src/test/
+  pom.xml
+  Dockerfile
+docker-compose.yml
 ```
 
-O banco fica disponível em:
+Cada aplicação gera seu próprio WAR e pode rodar em um Tomcat 9 com Java 25 ou superior. Para instalar manualmente, use `ROOT.war` em dois Tomcats separados (front na porta 8080, API na porta 8081). A variável `API_URL` do front indica o endereço da API, sem `/api` no final; o padrão é `http://localhost:8081`. No Docker, ela já aponta para `http://api:8080`.
 
-```text
-localhost:3306
+Apenas a API usa `DB_URL`, `DB_USER` e `DB_PASSWORD`. Os valores locais padrão estão em [db.properties](./api/src/main/resources/db.properties). O JavaScript chama `/api/...` no servidor do front, e o proxy encaminha método, parâmetros e JSON para o outro servidor.
+
+## Endpoints principais
+
+Todos usam o prefixo `/api`. As respostas com conteúdo usam JSON. Com exceção de `POST /auth/login`, `POST /auth/cadastro` e OPTIONS, todos exigem `Authorization: Bearer <token>`. POST e PUT com corpo exigem `Content-Type: application/json`.
+
+| Método | Caminho | Operação |
+| --- | --- | --- |
+| POST | `/auth/login` | Autenticar e obter um JWT |
+| POST | `/auth/cadastro` | Cadastrar leitor e conta CONSULTA, sem autenticação |
+| POST | `/auth/contas` | Administrador cria outra conta de acesso |
+| GET, POST | `/livros` | Pesquisar (`q`, `generoId`) ou cadastrar |
+| GET, PUT, DELETE | `/livros/{id}` | Consultar, editar ou excluir |
+| GET | `/generos` | Listar gêneros |
+| GET, POST | `/usuarios` | Listar ou cadastrar leitores |
+| GET | `/usuarios/{id}` | Consultar leitor |
+| GET | `/usuarios/{id}/preferencias` | Listar preferências |
+| PUT, DELETE | `/usuarios/{id}/preferencias/{generoId}` | Adicionar ou remover preferência |
+| GET | `/usuarios/{id}/recomendacoes` | Recomendar livros |
+| GET, POST | `/avaliacoes` | Listar (filtro `livroId`) ou cadastrar avaliação |
+| GET | `/medias` | Médias das avaliações por livro |
+| GET | `/auditoria` | Histórico de alterações |
+| GET | `/resumo` | Dados da página inicial |
+
+## Compilar e testar
+
+Com Maven instalado e Java 25 ou superior:
+
+```sh
+mvn -f api/pom.xml clean package
+mvn -f livros/pom.xml clean package
 ```
 
-## Configuração do banco
+Os testes da API usam DAOs em memória. O teste do front compila as JSPs no Tomcat e verifica o proxy contra outro servidor HTTP, incluindo erros e API fora do ar.
 
-A conexão do projeto é configurada no arquivo [docker-compose.yml](docker-compose.yml). Os valores padrão do ambiente são:
+O teste opcional com MySQL exige `RUN_MYSQL_TESTS=true` e `DB_URL` apontando para um banco separado cujo nome termine em `_test`, preparado com o SQL do projeto. Ele não usa o banco normal.
 
-- Banco: `db_recomendador_livros`
-- Usuário: `root`
-- Senha: `rootpassword`
+Se houver Node.js instalado, o teste de preferências do front pode ser executado com:
 
-O script de criação inicial está em [sql/init.sql](sql/init.sql).
-
-## Build local
-
-Para compilar e empacotar o projeto localmente:
-
-```bash
-cd livros
-mvn clean package
+```sh
+node livros/src/test/js/recomendacoes.test.mjs
+node livros/src/test/js/autenticacao.test.mjs
 ```
 
-O artefato gerado será:
+## Login e permissões
 
-```text
-livros/target/livros.war
+A página de login contém o formulário de cadastro com nome, e-mail e senha. `POST /api/auth/cadastro` cria o leitor e sua conta `CONSULTA` na mesma transação. Depois do cadastro, entre com o e-mail e a senha escolhidos. O perfil não pode ser escolhido pelo cadastro público.
+
+As contas de acesso continuam separadas dos leitores no banco. O endpoint administrativo `POST /api/usuarios` cria somente o leitor, para compatibilidade com a coleção e os dados anteriores. O formulário de cadastro foi retirado da página de usuários, que mantém a listagem.
+
+- `ADMIN`: consulta, cadastra, edita, exclui e visualiza auditoria.
+- `CONSULTA`: consulta dados, sem alterar registros e sem visualizar auditoria.
+
+Obtenha um token com `POST /api/auth/login`:
+
+```json
+{"email":"admin@livraria.local","senha":"sua senha configurada no ambiente"}
 ```
 
-## Validação atual
+A resposta contém `token`, `tipo`, `expiraEm` (1800 segundos), `perfil` e `email`. Envie o token no header `Authorization: Bearer <token>`. A API retorna 401 para credenciais/token inválidos ou expirados e 403 quando o perfil não permite a operação. A API não usa sessão HTTP.
 
-O projeto foi validado com build real do Maven e compilou com sucesso:
+Para criar uma conta de consulta, um administrador envia o próprio token em `POST /api/auth/contas`:
 
-```bash
-cd "c:/Users/vivis/Downloads/java/livros"; & "c:/Users/vivis/Downloads/java/apache-maven-3.9.16/bin/mvn.cmd" clean package
+```json
+{"email":"consulta@exemplo.com","senha":"uma senha forte de exemplo","perfil":"CONSULTA"}
 ```
 
-Resultado verificado:
+A resposta de criação é 201 sem corpo. Senhas usam PBKDF2-HMAC-SHA256 com salt aleatório e 600 mil iterações. Apenas o hash é salvo no MySQL. Os tokens são assinados com HS256 e expiram após 30 minutos. O payload não é criptografado e não contém senhas. Use HTTPS quando hospedar fora do ambiente local.
 
-- `BUILD SUCCESS`
-- `Tests run: 9, Failures: 0, Errors: 0, Skipped: 0`
+O front guarda o token em `sessionStorage`, que é separado por aba. Sair remove o token daquela aba; um token já emitido continua válido até expirar. A sessão da interface expirada volta ao login quando a API responde 401. O proxy encaminha `Authorization` e as respostas da API, sem acesso ao banco.
 
-## Observações
+O administrador inicial só é criado quando o e-mail ainda não existe. Alterar `ADMIN_PASSWORD` no ambiente não redefine uma senha já persistida. Para uma troca, crie outra conta ADMIN autenticada, atualize a configuração e use a nova conta. Não remova o volume para atualizar a aplicação.
 
-- A estrutura usa camadas MVC com servlets, services e DAO, o que é comum em projetos Java web.
-- O projeto está em estado funcional para apresentação e entrega, desde que o ambiente de banco e aplicação esteja configurado corretamente.
-- O diretório [livros/target](livros/target) será gerado após o build.
+A coleção do Postman começa com login e salva o token automaticamente. Preencha `email` e `senha` no ambiente local do Postman, sem compartilhar credenciais reais.
