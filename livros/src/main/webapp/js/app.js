@@ -16,6 +16,7 @@
     function logout() {
         sessionStorage.removeItem(tokenKey);
         sessionStorage.removeItem(profileKey);
+        sessionStorage.removeItem('livraria-email');
         sessionStorage.removeItem('livraria-message');
         location.replace('login.jsp');
     }
@@ -23,7 +24,7 @@
     const accountProfile = document.querySelector('#account-profile');
     if (accountProfile) accountProfile.textContent = admin ? 'Administrador' : 'Consulta';
     if (!admin && page !== 'login') {
-        content.querySelectorAll('form:not(#search-form), [data-admin]').forEach(element => element.hidden = true);
+        content.querySelectorAll('form:not(#search-form):not(#review-form), [data-admin]').forEach(element => element.hidden = true);
         document.querySelectorAll('[data-admin], a[href="novo-livro.jsp"], a[href="auditoria"], a[href="auditoria.jsp"]').forEach(element => element.hidden = true);
         if (['novo-livro', 'editar-livro', 'auditoria'].includes(page)) {
             location.replace('livros');
@@ -101,6 +102,7 @@
                 const acesso = await api('auth/login', 'POST', data);
                 sessionStorage.setItem(tokenKey, acesso.token);
                 sessionStorage.setItem(profileKey, acesso.perfil);
+                sessionStorage.setItem('livraria-email', acesso.email || '');
                 element.reset();
                 location.replace('index.jsp');
             });
@@ -141,13 +143,16 @@
             await loadUsers();
             $('#genres').innerHTML=(await api('generos')).map(g=>'<p><span class="badge-genre">'+escape(g.nome)+'</span><br>'+escape(g.descricao)+'</p>').join('') || 'Nenhum gênero cadastrado.';
         } else if(page==='avaliar') {
-            const [users,books]=await Promise.all([api('usuarios'),api('livros')]);
-            options($('#usuarioId'),users);options($('#livroId'),books,params.get('livroId'),x=>x.titulo+' — '+x.autor);
+            const author=$('#review-author');
+            const email=sessionStorage.getItem('livraria-email');
+            if(author) author.textContent=email ? 'Avaliando como '+email : 'A avaliação será publicada com sua conta conectada.';
+            const books=await api('livros');
+            options($('#livroId'),books,params.get('livroId'),x=>x.titulo+' — '+x.autor);
             const load=async()=>{const id=$('#livroId').value;reviews(await api('avaliacoes'+(id ? '?livroId='+id : '')));};
             $('#livroId').addEventListener('change',()=>load().catch(e=>message(e.message)));
             $('#all-reviews').addEventListener('click',()=>{$('#livroId').value='';load().catch(e=>message(e.message));});
             await load();
-            form('#review-form',async data=>{['usuarioId','livroId','nota'].forEach(k=>data[k]=Number(data[k]));await api('avaliacoes','POST',data);$('#comentario').value='';await load();message('Avaliação registrada com sucesso.',true);});
+            form('#review-form',async data=>{const payload={livroId:Number(data.livroId),nota:Number(data.nota),comentario:data.comentario};await api('avaliacoes','POST',payload);$('#comentario').value='';await load();message('Avaliação registrada com sucesso.',true);});
         } else if(page==='recomendacoes') {
             const [users,genres]=await Promise.all([api('usuarios'),api('generos')]);
             const activeUser=$('#active-user');

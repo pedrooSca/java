@@ -108,6 +108,7 @@ Se houver Node.js instalado, o teste de preferências do front pode ser executad
 ```sh
 node livros/src/test/js/recomendacoes.test.mjs
 node livros/src/test/js/autenticacao.test.mjs
+node livros/src/test/js/avaliacoes.test.mjs
 ```
 
 ## Login e permissões
@@ -117,7 +118,9 @@ A página de login contém o formulário de cadastro com nome, e-mail e senha. `
 As contas de acesso continuam separadas dos leitores no banco. O endpoint administrativo `POST /api/usuarios` cria somente o leitor, para compatibilidade com a coleção e os dados anteriores. O formulário de cadastro foi retirado da página de usuários, que mantém a listagem.
 
 - `ADMIN`: consulta, cadastra, edita, exclui e visualiza auditoria.
-- `CONSULTA`: consulta dados, sem alterar registros e sem visualizar auditoria.
+- `CONSULTA`: consulta dados e publica avaliações; as demais alterações e a auditoria são exclusivas do administrador.
+
+As avaliações são publicadas pelo leitor correspondente à conta autenticada, inclusive para administradores. A tela permite escolher apenas o livro, a nota e o comentário. `POST /api/avaliacoes` recebe `livroId`, `nota` e `comentario`; o autor é resolvido no servidor pelo token, ignorando qualquer `usuarioId` enviado no JSON. Contas antigas sem leitor associado recebem esse cadastro no primeiro envio, usando o e-mail da conta e preservando leitores já existentes.
 
 Obtenha um token com `POST /api/auth/login`:
 

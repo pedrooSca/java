@@ -37,13 +37,14 @@ function setup(page, stored = {}, respond) {
     console.log('OK: Tela sem autenticação redireciona para login sem consultar a API');
 }
 {
-    const test = setup('login', {}, async () => ({ status:200, ok:true, json:async()=>({token:'novo-token',perfil:'ADMIN'}) }));
+    const test = setup('login', {}, async () => ({ status:200, ok:true, json:async()=>({token:'novo-token',perfil:'ADMIN',email:'admin@teste.local'}) }));
     await test.elements['#login-form'].listeners.submit({ preventDefault() {} });
     assert.equal(test.calls[0].url, 'api/auth/login');
     assert.equal(test.calls[0].options.method, 'POST');
     assert.equal(test.calls[0].options.headers.Authorization, undefined);
     assert.equal(test.state.get('livraria-token'), 'novo-token');
     assert.equal(test.state.get('livraria-profile'), 'ADMIN');
+    assert.equal(test.state.get('livraria-email'), 'admin@teste.local');
     assert.equal(test.elements['#login-form'].resetCalled, true);
     assert.deepEqual(test.redirects, ['index.jsp']);
     console.log('OK: Login salva token e perfil e limpa o formulário');
@@ -66,7 +67,7 @@ function setup(page, stored = {}, respond) {
     console.log('OK: API rejeita token expirado e a interface exige novo login');
 }
 {
-    const test = setup('login', {'livraria-token':'token','livraria-profile':'ADMIN'}, () => assert.fail());
+    const test = setup('login', {'livraria-token':'token','livraria-profile':'ADMIN','livraria-email':'admin@teste.local'}, () => assert.fail());
     test.elements['#logout'].listeners.click();
     assert.equal(test.state.size, 0);
     assert.deepEqual(test.redirects, ['login.jsp']);

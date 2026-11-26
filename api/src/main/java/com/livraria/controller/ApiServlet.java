@@ -193,14 +193,25 @@ public class ApiServlet extends JsonServlet {
       send(
           res,
           201,
-          avaliacoes.cadastrar(
-              integer(dados, "usuarioId", true),
+          avaliacoes.cadastrarPelaConta(
+              contaAutenticada(req),
               integer(dados, "livroId", true),
               integer(dados, "nota", true),
               text(dados, "comentario")));
       return;
     }
     throw new HttpError(404, "Endpoint não encontrado.");
+  }
+
+  private int contaAutenticada(HttpServletRequest req) {
+    Object contaId = req.getAttribute("contaId");
+    if (!(contaId instanceof String valor) || !valor.matches("[1-9][0-9]*"))
+      throw new HttpError(401, "Autenticação necessária.");
+    try {
+      return Integer.parseInt(valor);
+    } catch (NumberFormatException e) {
+      throw new HttpError(401, "Autenticação necessária.");
+    }
   }
 
   private void consultas(HttpServletRequest req, HttpServletResponse res, String path)

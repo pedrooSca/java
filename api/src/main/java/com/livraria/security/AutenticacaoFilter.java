@@ -59,7 +59,9 @@ public class AutenticacaoFilter implements Filter {
     boolean restrito =
         caminho.equals("/api/auth")
             || (caminho.equals("/api") && "/auditoria".equals(req.getPathInfo()));
-    if (!perfil.equals("ADMIN") && (!leitura || restrito)) {
+    boolean cadastroAvaliacao = req.getMethod().equals("POST")
+        && caminho.equals("/api") && "/avaliacoes".equals(req.getPathInfo());
+    if (!perfil.equals("ADMIN") && ((!leitura && !cadastroAvaliacao) || restrito)) {
       negar(res, 403);
       return;
     }

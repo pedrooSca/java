@@ -10,6 +10,28 @@ import java.util.Optional;
 /** DAO para gerenciamento da tabela 'usuarios' e relacionamento N:M 'usuario_generos'. */
 public class UsuarioDAO extends MysqlDAO {
 
+  /** Resolve o leitor pelo e-mail da conta autenticada, nunca pelo ID enviado pelo cliente. */
+  public Optional<Integer> obterUsuarioIdDaConta(int contaId) throws SQLException {
+    try (var conexao = obterConexao()) {
+      // Contas antigas e administrativas podem ainda não possuir cadastro de leitor.
+      // A chave única de e-mail preserva o nome e o ID dos leitores existentes.
+      try (var comando = conexao.prepareStatement(
+          "INSERT INTO usuarios (nome, email) "
+              + "SELECT SUBSTRING_INDEX(c.email, '@', 1), c.email FROM contas_acesso c WHERE c.id = ? "
+              + "ON DUPLICATE KEY UPDATE email = usuarios.email")) {
+        comando.setInt(1, contaId);
+        comando.executeUpdate();
+      }
+      try (var comando = conexao.prepareStatement(
+          "SELECT u.id FROM usuarios u JOIN contas_acesso c ON c.email = u.email WHERE c.id = ?")) {
+        comando.setInt(1, contaId);
+        try (var resultado = comando.executeQuery()) {
+          return resultado.next() ? Optional.of(resultado.getInt("id")) : Optional.empty();
+        }
+      }
+    }
+  }
+
   public List<Usuario> listarTodos() throws SQLException {
     List<Usuario> lista = new ArrayList<>();
     String sql = "SELECT id, nome, email, data_cadastro FROM usuarios ORDER BY nome ASC";

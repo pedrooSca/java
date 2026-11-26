@@ -17,6 +17,7 @@ public class ApiServletTest {
     private final ObjectMapper json = new ObjectMapper();
     private MemoryDAO dao;
     private ApiServlet api;
+    private String contaId;
     @Before public void setup() {
         dao = new MemoryDAO();
         api = new ApiServlet(new LivroService(dao, new GeneroDAO() {
@@ -32,6 +33,7 @@ public class ApiServletTest {
                 case "getContextPath":return "/livros";
                 case "getReader":return new BufferedReader(new StringReader(body==null ? "" : body));
                 case "getParameter":return query.get((String)a[0]);
+                case "getAttribute":return "contaId".equals(a[0]) ? contaId : null;
                 default:return null;
             }
         });
@@ -48,6 +50,41 @@ public class ApiServletTest {
     }
     private Result call(String method,String path,String body) throws Exception {return request(method,path,body,"application/json",Map.of());}
     private String valid() {return "{\"titulo\":\" Duna \",\"autor\":\"Frank Herbert\",\"isbn\":null,\"anoPublicacao\":1965,\"generoId\":1}";}
+    @Test public void avaliacaoUsaContaAutenticadaEIgnoraAutorDoCorpo() throws Exception {
+        var usuarioDAO = new UsuarioDAO() {
+            @Override public Optional<Integer> obterUsuarioIdDaConta(int id) {
+                assertEquals(7, id);
+                return Optional.of(42);
+            }
+            @Override public Optional<Usuario> buscarPorId(int id) {
+                assertEquals(42, id);
+                return Optional.of(new Usuario(42, "Leitor conectado", "leitor@teste.local"));
+            }
+        };
+        var livroDAO = new LivroDAO() {
+            @Override public Optional<Livro> buscarPorId(int id) {
+                assertEquals(3, id);
+                return Optional.of(new Livro());
+            }
+        };
+        var avaliacaoDAO = new AvaliacaoDAO() {
+            @Override public Avaliacao inserir(Avaliacao avaliacao) {
+                assertEquals(42, avaliacao.getUsuarioId());
+                return avaliacao;
+            }
+        };
+        api = new ApiServlet(new LivroService(), new UsuarioService(), new GeneroService(),
+            new AvaliacaoService(avaliacaoDAO, usuarioDAO, livroDAO), new RecomendacaoService(),
+            new LogAuditoriaService(), new ResumoService());
+        contaId = "7";
+        for (String autor : List.of("", ",\"usuarioId\":999", ",\"usuarioId\":7")) {
+            Result result = call("POST", "/avaliacoes", "{\"livroId\":3,\"nota\":5" + autor + "}");
+            assertEquals(201, result.status);
+            assertEquals(42, json.readTree(result.body.toString()).get("usuarioId").asInt());
+        }
+        contaId = null;
+        assertEquals(401, call("POST", "/avaliacoes", "{\"livroId\":3,\"nota\":5}").status);
+    }
     @Test public void crudCompletoComLocationEFiltros() throws Exception {
         Result created=call("POST","/livros",valid()); assertEquals(201,created.status);
         assertEquals("/livros/api/livros/1",created.headers.get("Location"));

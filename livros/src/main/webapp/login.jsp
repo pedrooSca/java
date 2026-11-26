@@ -37,6 +37,6 @@
     </div>
     <noscript>Ative JavaScript para entrar no sistema.</noscript>
 </main>
-<script src="js/app.js?v=3" defer></script>
+<script src="js/app.js?v=5" defer></script>
 </body>
 </html>

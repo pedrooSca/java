@@ -74,6 +74,13 @@ public class SegurancaTest {
         String consulta = "Bearer " + jwt.emitir(2, "CONSULTA");
         assertEquals(200, filtrar("DELETE", "/livros/1", admin));
         assertEquals(200, filtrar("GET", "/livros", consulta));
+        assertEquals(200, filtrar("POST", "/avaliacoes", consulta));
+        assertEquals(200, filtrar("POST", "/avaliacoes", admin));
+        assertEquals(401, filtrar("POST", "/avaliacoes", null));
+        assertEquals(403, filtrar("PUT", "/avaliacoes", consulta));
+        assertEquals(403, filtrar("DELETE", "/avaliacoes/1", consulta));
+        assertEquals(403, filtrar("POST", "/avaliacoes/1", consulta));
+        assertEquals(403, filtrar("POST", "/usuarios", consulta));
         assertEquals(403, filtrar("POST", "/livros", consulta));
         assertEquals(403, filtrar("PUT", "/usuarios/1/preferencias/2", consulta));
         assertEquals(403, filtrar("GET", "/auditoria", consulta));

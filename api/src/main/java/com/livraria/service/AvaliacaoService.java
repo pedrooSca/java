@@ -39,6 +39,13 @@ public class AvaliacaoService {
     return avaliacaoDAO.inserir(new Avaliacao(usuarioId, livroId, nota, comentario));
   }
 
+  public Avaliacao cadastrarPelaConta(int contaId, int livroId, int nota, String comentario)
+      throws SQLException {
+    int usuarioId = usuarioDAO.obterUsuarioIdDaConta(contaId)
+        .orElseThrow(() -> new RecursoNaoEncontradoException("Conta autenticada não encontrada."));
+    return cadastrar(usuarioId, livroId, nota, comentario);
+  }
+
   public List<Avaliacao> listarPorLivro(int livroId) throws SQLException {
     return avaliacaoDAO.listarPorLivro(livroId);
   }
