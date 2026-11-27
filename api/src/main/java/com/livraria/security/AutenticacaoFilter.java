@@ -1,7 +1,9 @@
 package com.livraria.security;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.livraria.view.RespostaJson;
 import java.io.IOException;
+import java.util.Map;
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.*;
@@ -69,14 +71,12 @@ public class AutenticacaoFilter implements Filter {
   }
 
   private void negar(HttpServletResponse res, int status) throws IOException {
-    res.setStatus(status);
-    res.setContentType("application/json;charset=UTF-8");
-    res.setHeader("Cache-Control", "no-store");
+    RespostaJson.preparar(res);
     if (status == 401) res.setHeader("WWW-Authenticate", "Bearer");
     String mensagem =
         status == 401
             ? "Autenticação necessária ou token expirado."
             : "Seu perfil não permite esta operação.";
-    res.getWriter().write("{\"status\":" + status + ",\"erro\":\"" + mensagem + "\"}");
+    RespostaJson.escrever(res, status, Map.of("status", status, "erro", mensagem));
   }
 }

@@ -8,7 +8,7 @@
   <version>1.0</version>
   <packaging>war</packaging>
 
-  <name>Livraria Front-end e Proxy</name>
+  <name>Livraria Web MVC</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,6 +18,11 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.18.6</version>
+    </dependency>
     <dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-jasper</artifactId><version>9.0.113</version><scope>test</scope></dependency>
     <dependency>
       <groupId>junit</groupId>

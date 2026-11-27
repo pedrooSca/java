@@ -32,5 +32,5 @@
             Livraria · Sistema de Recomendações de Livros por Gênero · UNIUBE ADS MVC
         </div>
     </footer>
-<script src="js/app.js?v=3" defer></script></body>
+<script src="js/app.js?v=6" defer></script></body>
 </html>

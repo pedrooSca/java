@@ -5,7 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
-/** Rotas das telas. Os dados são obtidos pelo JavaScript através do proxy. */
+/** Controller das telas. Encaminha as rotas públicas para as views JSP. */
 @WebServlet(
     urlPatterns = {
       "/login",
@@ -16,18 +16,28 @@ import javax.servlet.http.*;
       "/avaliacoes",
       "/recomendacoes",
       "/usuarios",
-      "/auditoria"
+      "/auditoria",
+      "/login.jsp",
+      "/index.jsp",
+      "/livros.jsp",
+      "/novo-livro.jsp",
+      "/editar-livro.jsp",
+      "/avaliar.jsp",
+      "/recomendacoes.jsp",
+      "/usuarios.jsp",
+      "/auditoria.jsp"
     })
 public class PaginaServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
-    String page =
-        switch (req.getServletPath()) {
-          case "/home" -> "index";
-          case "/avaliacoes" -> "avaliar";
-          default -> req.getServletPath().substring(1);
+    String rota = req.getServletPath().substring(1);
+    String pagina =
+        switch (rota) {
+          case "home" -> "index.jsp";
+          case "avaliacoes" -> "avaliar.jsp";
+          default -> rota.endsWith(".jsp") ? rota : rota + ".jsp";
         };
-    req.getRequestDispatcher("/" + page + ".jsp").forward(req, res);
+    req.getRequestDispatcher("/WEB-INF/views/" + pagina).forward(req, res);
   }
 }

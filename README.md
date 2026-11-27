@@ -2,12 +2,12 @@
 
 Projeto simples em Java, JSP e MySQL, separado em duas aplicações independentes:
 
-- [livros/](./livros/): front-end (JSP, CSS e JavaScript) e mini backend que encaminha as requisições para a API. Não acessa o banco.
-- [api/](./api/): API JSON, regras de negócio, modelos e DAOs. Não contém telas nem arquivos de front-end.
+- [livros/](./livros/) é a aplicação web MVC. Os servlets selecionam as JSPs e recebem as operações das telas. O serviço monta os dados do catálogo, e o DAO consulta a API por HTTP.
+- [api/](./api/) é a aplicação MVC que entrega respostas em JSON. Seus controllers chamam os serviços de negócio, e os DAOs acessam o MySQL.
 - [api/sql/init.sql](./api/sql/init.sql): criação do banco, dados iniciais, view, triggers e procedure de recomendações.
 - [postman/](./postman/): coleção para testar os endpoints.
 
-Fluxo: navegador → front-end e proxy → API → MySQL.
+Fluxo dos dados: navegador → controller, service e DAO de `livros` → controller, service e DAO da `api` → MySQL.
 
 O sistema mantém cadastro, pesquisa, edição e exclusão de livros, cadastro de leitores, avaliações, preferências, recomendações e auditoria.
 
@@ -47,6 +47,7 @@ api/
     service/                    # regras de negócio
     dao/                        # consultas JDBC
     model/                      # dados
+    view/                       # representação JSON das respostas
     config/                     # conexão MySQL
   src/main/resources/          # db.properties e atualização idempotente do banco
   src/test/java/
@@ -54,10 +55,15 @@ api/
   pom.xml
   Dockerfile
 livros/
-  src/main/java/com/livraria/controller/
-    PaginaServlet.java          # rotas das telas
-    ApiProxyServlet.java        # ligação HTTP com a API
-  src/main/webapp/              # login, JSP, CSS e JavaScript
+  src/main/java/com/livraria/
+    controller/                 # páginas e operações das telas
+    service/                    # operações de dados e composição do catálogo
+    dao/                        # acesso HTTP à API
+    model/                      # catálogo e dados da integração
+  src/main/webapp/
+    WEB-INF/views/              # JSPs selecionadas pelo controller
+    css/                        # estilos
+    js/                         # interação e renderização dos dados
   src/test/
   pom.xml
   Dockerfile
@@ -66,7 +72,7 @@ docker-compose.yml
 
 Cada aplicação gera seu próprio WAR e pode rodar em um Tomcat 9 com Java 25 ou superior. Para instalar manualmente, use `ROOT.war` em dois Tomcats separados (front na porta 8080, API na porta 8081). A variável `API_URL` do front indica o endereço da API, sem `/api` no final; o padrão é `http://localhost:8081`. No Docker, ela já aponta para `http://api:8080`.
 
-Apenas a API usa `DB_URL`, `DB_USER` e `DB_PASSWORD`. Os valores locais padrão estão em [db.properties](./api/src/main/resources/db.properties). O JavaScript chama `/api/...` no servidor do front, e o proxy encaminha método, parâmetros e JSON para o outro servidor.
+Apenas a API usa `DB_URL`, `DB_USER` e `DB_PASSWORD`. Os valores locais padrão estão em [db.properties](./api/src/main/resources/db.properties). O JavaScript chama `/api/...` no servidor web. Na consulta `GET /api/catalogo`, o serviço de `livros` combina os resultados de `/api/livros` e `/api/medias` da API. O restante das chamadas mantém os contratos da API.
 
 ## Endpoints principais
 
@@ -99,7 +105,7 @@ mvn -f api/pom.xml clean package
 mvn -f livros/pom.xml clean package
 ```
 
-Os testes da API usam DAOs em memória. O teste do front compila as JSPs no Tomcat e verifica o proxy contra outro servidor HTTP, incluindo erros e API fora do ar.
+Os testes da API usam DAOs em memória. O teste do front compila as JSPs no Tomcat e verifica o fluxo HTTP com outro servidor, incluindo a composição do catálogo, a autenticação e a resposta quando a API está indisponível.
 
 O teste opcional com MySQL exige `RUN_MYSQL_TESTS=true` e `DB_URL` apontando para um banco separado cujo nome termine em `_test`, preparado com o SQL do projeto. Ele não usa o banco normal.
 

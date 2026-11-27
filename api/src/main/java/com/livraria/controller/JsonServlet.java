@@ -2,6 +2,7 @@ package com.livraria.controller;
 
 import com.fasterxml.jackson.databind.*;
 import com.livraria.service.*;
+import com.livraria.view.RespostaJson;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
@@ -9,17 +10,13 @@ import javax.servlet.http.*;
 
 /** Contrato JSON e tratamento uniforme dos erros HTTP. */
 public abstract class JsonServlet extends HttpServlet {
-  protected final ObjectMapper json =
-      new ObjectMapper()
-          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-          .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+  private final ObjectMapper json =
+      new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
     req.setCharacterEncoding("UTF-8");
-    res.setCharacterEncoding("UTF-8");
-    res.setContentType("application/json");
-    res.setHeader("Cache-Control", "no-store");
+    RespostaJson.preparar(res);
     try {
       route(req, res);
     } catch (HttpError e) {
@@ -107,8 +104,7 @@ public abstract class JsonServlet extends HttpServlet {
   }
 
   protected void send(HttpServletResponse res, int status, Object value) throws IOException {
-    res.setStatus(status);
-    json.writeValue(res.getWriter(), value);
+    RespostaJson.escrever(res, status, value);
   }
 
   protected void error(HttpServletResponse res, int status, String message) throws IOException {

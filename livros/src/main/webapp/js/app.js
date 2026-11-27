@@ -88,7 +88,7 @@
     function stats(selector,values) {$(selector).innerHTML=values.map(([value,label])=>'<div class="stat-card"><div class="stat-value">'+value+'</div><div class="stat-label">'+label+'</div></div>').join('');}
     async function catalog() {
         const query=new URLSearchParams(new FormData($('#search-form')));
-        const [books,means]=await Promise.all([api('livros?'+query),api('medias')]);
+        const {livros: books, medias: means}=await api('catalogo?'+query);
         history.replaceState(null,'',location.pathname+(query.toString() ? '?'+query : ''));
         $('#result-count').textContent=books.length+' livro(s) encontrado(s)';cards(books,means,admin);
     }
